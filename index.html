@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pemilihan Ketua RT 06 / RW 10 – Perumahan Nuansa Alam Cilebut</title>
+  <meta name="description" content="Pengajuan calon, e-voting, dan live count Pemilihan Ketua RT 06 / RW 10 Perumahan Nuansa Alam Cilebut periode 2026-2031.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <svg class="logo" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z"/></svg>
+      <h1>Pemilihan Ketua RT 06 / RW 10</h1>
+      <p>Perumahan Nuansa Alam Cilebut • Periode 2026-2031</p>
+    </header>
+
+    <!-- State Loading -->
+    <div class="card" id="loadingMenu" style="text-align:center;padding:28px 16px;">
+      <span class="spinner dark"></span> Memuat menu pemilihan…
+    </div>
+
+    <!-- Menu Tahap 3 Part 1 (Pengajuan Nama Calon) -->
+    <a class="card menu-card" href="usulan.html" id="cardPart1" hidden>
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+      <div>
+        <h3>Tahap 3 Part 1</h3>
+        <p>Pengajuan Nama Calon</p>
+      </div>
+      <span class="chip gray" id="st1">Memuat…</span>
+    </a>
+
+    <!-- Menu Tahap 3 Part 2 (E-Voting) -->
+    <a class="card menu-card" href="voting.html" id="cardPart2" hidden>
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></div>
+      <div>
+        <h3>Tahap 3 Part 2</h3>
+        <p>E-Voting Ketua RT</p>
+      </div>
+      <span class="chip gray" id="st2">Memuat…</span>
+    </a>
+
+    <!-- Menu Live Count -->
+    <a class="card menu-card" href="livecount.html" id="cardLive" hidden>
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v2M11 11v6M15 7v10M19 13v4"/></svg></div>
+      <div>
+        <h3>Live Count</h3>
+        <p>Perolehan suara sementara</p>
+      </div>
+      <span class="chip red" id="stLive">LIVE</span>
+    </a>
+
+    <!-- Notifikasi jika belum ada menu yang dibuka -->
+    <div class="card" id="emptyNotice" hidden style="text-align:center;padding:32px 18px;">
+      <h3 style="margin-top:0">Belum Ada Tahap yang Dibuka</h3>
+      <p style="color:var(--muted);margin:4px 0 0;">Saat ini belum ada tahapan pemilihan yang dibuka untuk umum. Silakan tunggu pengumuman dari Panitia Pemilihan.</p>
+    </div>
+
+    <footer class="footer">
+      Panitia Pemilihan Ketua RT 06 / RW 10
+      <small><a href="admin.html">Masuk Panitia</a></small>
+    </footer>
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    (async function () {
+      const $ = (id) => document.getElementById(id);
+      const setChip = (id, open) => {
+        const el = $(id);
+        if (!el) return;
+        el.textContent = open ? "Dibuka" : "Ditutup";
+        el.className = "chip " + (open ? "green" : "gray");
+      };
+
+      try {
+        const s = await App.api("status");
+        $("loadingMenu").hidden = true;
+
+        setChip("st1", s.part1 && s.part1.open);
+        setChip("st2", s.part2 && s.part2.open);
+
+        // Baca visibilitas menu dari backend admin
+        const t = s.tampilan || {};
+        const showP1 = t.part1 !== undefined ? !!t.part1 : true;
+        const showP2 = t.part2 !== undefined ? !!t.part2 : false;
+        const showLive = t.livecount !== undefined ? !!t.livecount : false;
+
+        $("cardPart1").hidden = !showP1;
+        $("cardPart2").hidden = !showP2;
+        $("cardLive").hidden = !showLive;
+
+        // Jika semua menu dinonaktifkan di admin
+        if (!showP1 && !showP2 && !showLive) {
+          $("emptyNotice").hidden = false;
+        }
+      } catch (e) {
+        $("loadingMenu").hidden = true;
+        // Fallback saat offline/sebelum konfigurasi API: default tampilkan Part 1 saja
+        $("cardPart1").hidden = false;
+        $("st1").textContent = "–";
+        if (e.message && !e.message.includes("belum diatur")) {
+          App.toast(e.message, "error");
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

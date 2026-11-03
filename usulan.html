@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pengajuan Calon Ketua RT 06 / RW 10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <a href="index.html" aria-label="Beranda"><svg class="logo" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z"/></svg></a>
+      <h1>Pengajuan Calon Ketua RT 06 / RW 10</h1>
+      <p>Perumahan Nuansa Alam Cilebut • Periode 2026-2031</p>
+    </header>
+
+    <div class="banner" id="banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span id="bannerText">Tahap 3 Part 1: Pengajuan Nama Calon — memuat status…</span>
+    </div>
+
+    <section class="card" id="formCard">
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="rumah">Nomor Rumah</label>
+          <input class="input upper" id="rumah" name="rumah" placeholder="Contoh: A1" autocomplete="off" maxlength="10" required>
+          <div class="error-text" id="rumahErr" hidden></div>
+        </div>
+        <div class="field">
+          <label for="nama">Nama Calon yang Diajukan</label>
+          <input class="input" id="nama" name="nama" placeholder="Contoh: Jefri Nichol - Z1" autocomplete="off" maxlength="80" required>
+          <div class="help">Format disarankan: Nama - Nomor Rumah calon</div>
+        </div>
+        <button class="btn block" id="submit" type="submit" disabled>Kirim Usulan</button>
+      </form>
+    </section>
+
+    <section class="card" id="doneCard" hidden>
+      <div class="success-box">
+        <div class="check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h2>Usulan terkirim</h2>
+        <p id="doneText"></p>
+        <button class="btn outline" id="again" type="button">Ajukan nama lain</button>
+      </div>
+    </section>
+
+    <footer class="footer">Panitia Pemilihan Ketua RT 06 / RW 10</footer>
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $("form"), btn = $("submit");
+
+      async function loadStatus() {
+        try {
+          const s = await App.api("status");
+          const p = s.part1;
+          if (p.open) {
+            $("bannerText").textContent = "Tahap 3 Part 1: Pengajuan Nama Calon — " +
+              (p.tutup ? "dibuka s/d " + App.fmtDateTime(p.tutup) : "sedang dibuka");
+            btn.disabled = false;
+          } else {
+            $("banner").classList.add("closed");
+            $("bannerText").textContent = "Tahap 3 Part 1: Pengajuan Nama Calon — sedang ditutup";
+            btn.disabled = true;
+          }
+        } catch (e) {
+          $("bannerText").textContent = "Gagal memuat status. " + e.message;
+          $("banner").classList.add("closed");
+        }
+      }
+
+      $("rumah").addEventListener("blur", () => {
+        const v = App.normRumah($("rumah").value);
+        if (v) $("rumah").value = v;
+      });
+
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const rumah = App.normRumah($("rumah").value);
+        const nama = $("nama").value.trim();
+        $("rumahErr").hidden = true;
+
+        if (!App.validRumah(rumah)) {
+          $("rumahErr").textContent = "Format nomor rumah tidak valid (contoh: A1).";
+          $("rumahErr").hidden = false;
+          $("rumah").focus();
+          return;
+        }
+        if (nama.length < 3) {
+          App.toast("Nama calon wajib diisi.", "error");
+          $("nama").focus();
+          return;
+        }
+
+        App.setLoading(btn, true);
+        try {
+          const r = await App.api("submitUsulan", { rumah, nama });
+          $("doneText").textContent = "Terima kasih! Usulan dari rumah " + r.rumah + " sudah tercatat." +
+            (r.sisa > 0 ? " Sisa kuota usulan rumah ini: " + r.sisa + "." : " Kuota usulan rumah ini sudah habis.");
+          $("again").hidden = r.sisa <= 0;
+          $("formCard").hidden = true;
+          $("doneCard").hidden = false;
+          $("nama").value = "";
+        } catch (e) {
+          App.toast(e.message, "error");
+        } finally {
+          App.setLoading(btn, false);
+        }
+      });
+
+      $("again").addEventListener("click", () => {
+        $("doneCard").hidden = true;
+        $("formCard").hidden = false;
+        $("nama").focus();
+      });
+
+      loadStatus();
+    })();
+  </script>
+</body>
+</html>

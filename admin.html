@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Admin Panitia – RT 06 / RW 10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <!-- ============ LOGIN ============ -->
+  <section class="login" id="loginView">
+    <div class="hero">
+      <svg class="logo" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z"/></svg>
+      <h1>Admin Panitia</h1>
+      <p>RT 06 / RW 10 • Perumahan Nuansa Alam Cilebut</p>
+    </div>
+    <form class="card" id="loginForm">
+      <div class="field">
+        <label for="pw">Password</label>
+        <input class="input" type="password" id="pw" autocomplete="current-password" required>
+      </div>
+      <button class="btn block" id="loginBtn" type="submit">Masuk</button>
+    </form>
+    <p class="footer"><a href="index.html">← Kembali ke beranda</a></p>
+  </section>
+
+  <!-- ============ APP ============ -->
+  <div class="admin" id="appView" hidden>
+    <aside class="side" id="side">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z"/></svg>
+        <span>Admin Panitia<br>RT 06 / RW 10</span>
+      </div>
+      <button class="nav active" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
+      <button class="nav" data-tab="usulan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Rekap Usulan (Part 1)</button>
+      <button class="nav" data-tab="calon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/></svg>Kelola Calon</button>
+      <button class="nav" data-tab="suara"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 12 2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>Suara (Part 2)</button>
+      <button class="nav" data-tab="rumah"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Data Rumah</button>
+      <button class="nav" data-tab="pengaturan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Pengaturan</button>
+      <div class="spacer"></div>
+      <button class="nav" id="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Keluar</button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <button class="btn outline sm menu-toggle" id="menuBtn" aria-label="Menu">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+        <button class="toggle" id="tg1"><span>Part 1: –</span><span class="knob"></span></button>
+        <button class="toggle" id="tg2"><span>Part 2: –</span><span class="knob"></span></button>
+        <a class="btn outline sm" id="exportBtn" href="#" target="_blank" rel="noopener">⬇ Export Excel</a>
+      </div>
+
+      <div class="content">
+        <!-- DASHBOARD -->
+        <section data-view="dashboard">
+          <div class="stats four">
+            <div class="card stat"><div class="label">Rumah Terdaftar</div><div class="value" id="dRumah">–</div><div class="help" id="dHak"></div></div>
+            <div class="card stat"><div class="label">Usulan Masuk (Part 1)</div><div class="value" id="dUsulan">–</div><div class="help" id="dRumahUsul"></div></div>
+            <div class="card stat"><div class="label">Suara Masuk (Part 2)</div><div class="value" id="dSuara">–</div><div class="help" id="dRumahVote"></div></div>
+            <div class="card stat"><div class="label">Partisipasi</div><div class="value" id="dPct">–</div><div class="progress"><div id="dPctBar" style="width:0"></div></div></div>
+          </div>
+          <div class="card">
+            <h3>Status Tahap</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Tahap</th><th>Status</th><th>Ditutup otomatis</th></tr></thead>
+                <tbody id="dStatus"></tbody>
+              </table>
+            </div>
+            <div class="row-actions">
+              <a class="btn outline sm" id="sheetLink" href="#" target="_blank" rel="noopener">Buka Google Sheets</a>
+              <a class="btn outline sm" href="livecount.html" target="_blank">Buka Live Count</a>
+              <button class="btn outline danger sm" id="btnQuickReset" type="button">⚠️ Reset Data Uji Coba</button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <h3>Tampilan Menu di Halaman Utama (index.html)</h3>
+            <p class="help" style="margin-top:-6px">Pilih menu mana saja yang tampil untuk warga saat membuka halaman utama. Secara default untuk pengajuan hanya tampil Part 1, dan saat e-voting tampil Part 2 beserta Live Count.</p>
+            <div style="display:grid;gap:12px;margin:16px 0;background:#f9fafb;padding:14px;border-radius:12px;border:1px solid var(--border)">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="mPart1" style="width:18px;height:18px;cursor:pointer">
+                <span><b>Tahap 3 Part 1:</b> Pengajuan Nama Calon (Form Pengajuan)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="mPart2" style="width:18px;height:18px;cursor:pointer">
+                <span><b>Tahap 3 Part 2:</b> E-Voting Ketua RT (Kartu Suara Calon)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="mLive" style="width:18px;height:18px;cursor:pointer">
+                <span><b>Live Count:</b> Perolehan Suara Sementara (Real-time)</span>
+              </label>
+            </div>
+            <div class="row-actions">
+              <button class="btn sm" id="btnSaveMenu">Simpan Tampilan Beranda</button>
+              <button class="btn outline sm" id="btnPresetP1">Set Standar Part 1 (Hanya Usulan)</button>
+              <button class="btn outline sm" id="btnPresetP2">Set Standar Part 2 (Voting + Live Count)</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- USULAN -->
+        <section data-view="usulan" hidden>
+          <div class="stats">
+            <div class="card stat"><div class="label">Total Usulan</div><div class="value" id="uTotal">–</div></div>
+            <div class="card stat"><div class="label">Rumah Berpartisipasi</div><div class="value" id="uRumah">–</div></div>
+            <div class="card stat"><div class="label">Nama Unik</div><div class="value" id="uUnik">–</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Peringkat Nama Calon</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>No</th><th>Nama Calon</th><th>Jumlah Usulan</th><th>Aksi</th></tr></thead>
+                  <tbody id="uRank"></tbody>
+                </table>
+              </div>
+              <div class="row-actions">
+                <button class="btn" id="setCalonBtn" disabled>Tetapkan Calon untuk Part 2</button>
+                <button class="btn outline" id="uCsv">Download CSV</button>
+              </div>
+              <p class="help">Gunakan <b>Gabungkan</b> jika ada nama yang sama tapi penulisannya berbeda (mis. "Pak Jefri" dan "Jefri Nichol - Z1").</p>
+            </div>
+            <div class="card">
+              <h3>Log Usulan</h3>
+              <div class="log" id="uLog"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CALON -->
+        <section data-view="calon" hidden>
+          <div class="card">
+            <h3>Daftar Calon Part 2</h3>
+            <p class="help" style="margin-top:-6px">Foto opsional: isi dengan link gambar (mis. <code>img/calon1.jpg</code> jika file diunggah ke folder <code>img</code> website). Jika kosong, akan tampil inisial nama.</p>
+            <div class="calon-edit head"><span>No</span><span>Nama</span><span class="hide-sm">Tagline</span><span class="hide-sm">Link Foto</span><span></span></div>
+            <div id="cList"></div>
+            <div class="row-actions">
+              <button class="btn outline" id="cAdd">+ Tambah Calon</button>
+              <button class="btn" id="cSave">Simpan Daftar Calon</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SUARA -->
+        <section data-view="suara" hidden>
+          <div class="card">
+            <h3>Log Suara Masuk</h3>
+            <p class="help" style="margin-top:-6px">Pilihan calon tidak ditampilkan di sini untuk menjaga kerahasiaan suara. Batalkan suara hanya jika ada yang janggal (mis. nomor rumah salah / bukan warga).</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Waktu</th><th>Nomor Rumah</th><th>ID Perangkat</th><th>Status</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                <tbody id="sBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- RUMAH -->
+        <section data-view="rumah" hidden>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Data Rumah & Kuota Suara</h3>
+              <p class="help" style="margin-top:-6px">Satu baris per rumah: <code>nomor_rumah, kuota</code>. Kuota 1 atau 2. Bisa langsung copy–paste 2 kolom dari Excel.</p>
+              <textarea class="input" id="rText" rows="16" spellcheck="false" placeholder="A1, 2&#10;A2, 1&#10;A3, 2"></textarea>
+              <div class="row-actions">
+                <button class="btn" id="rSave">Simpan Data Rumah</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Ringkasan</h3>
+              <div class="log" id="rSummary"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PENGATURAN -->
+        <section data-view="pengaturan" hidden>
+          <div class="card" style="max-width:640px">
+            <h3>Jadwal & Status Pemilihan</h3>
+            <div class="field">
+              <label><input type="checkbox" id="p1Open"> Buka Tahap 3 Part 1 (Pengajuan Nama)</label>
+              <input class="input" type="datetime-local" id="p1Tutup">
+              <div class="help">Waktu tutup otomatis (opsional). Kosongkan jika ditutup manual.</div>
+            </div>
+            <div class="field">
+              <label><input type="checkbox" id="p2Open"> Buka Tahap 3 Part 2 (E-Voting)</label>
+              <input class="input" type="datetime-local" id="p2Tutup">
+              <div class="help">Waktu tutup otomatis (opsional). Countdown di halaman voting mengikuti waktu ini.</div>
+            </div>
+
+            <h3 style="margin-top:24px">Tampilan Menu di Beranda (index.html)</h3>
+            <p class="help" style="margin-top:-6px">Pilih menu apa saja yang dapat dilihat oleh warga pada halaman utama.</p>
+            <div style="display:grid;gap:10px;margin:12px 0;background:#f9fafb;padding:12px;border-radius:10px;border:1px solid var(--border)">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="cfgPart1" style="width:18px;height:18px">
+                <span>Tampilkan Tahap 3 Part 1 (Pengajuan Nama Calon)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="cfgPart2" style="width:18px;height:18px">
+                <span>Tampilkan Tahap 3 Part 2 (E-Voting Ketua RT)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="cfgLive" style="width:18px;height:18px">
+                <span>Tampilkan Live Count (Perolehan Suara)</span>
+              </label>
+            </div>
+
+            <h3 style="margin-top:24px">Ganti Password Admin</h3>
+            <div class="field">
+              <input class="input" type="password" id="newPw" placeholder="Kosongkan jika tidak diganti" autocomplete="new-password">
+            </div>
+            <button class="btn" id="saveSetting">Simpan Pengaturan</button>
+          </div>
+
+          <div class="card" style="max-width:640px;margin-top:20px;border-color:#fca5a5;background:#fff8f8">
+            <h3 style="color:#b91c1c;margin-top:0">⚠️ Reset Data Uji Coba (Simulasi Selesai)</h3>
+            <p style="font-size:14px;color:#7f1d1d;margin-top:-4px">
+              Gunakan fitur ini setelah panitia selesai melakukan simulasi/uji coba. Data suara masuk dan usulan nama akan dikosongkan kembali agar sistem siap digunakan saat pemilihan sebenarnya.
+            </p>
+            <div style="background:#fff;padding:12px;border-radius:10px;border:1px solid #fecaca;margin-bottom:14px;font-size:13px;line-height:1.6">
+              <div>✅ <b>Data Nomor Rumah & Kuota:</b> <u>TETAP AMAN</u> (tidak akan dihapus).</div>
+              <div>✅ <b>Batasan Perangkat / HP:</b> Otomatis dibersihkan untuk semua HP yang tadinya sudah voting saat uji coba.</div>
+            </div>
+            <button class="btn danger" id="btnResetData" type="button">Reset Data Pemilihan Sekarang</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal umum -->
+  <div class="modal-bg" id="modal" hidden>
+    <div class="modal left" role="dialog" aria-modal="true">
+      <div id="modalBody"></div>
+      <div class="actions" style="margin-top:18px">
+        <button class="btn outline" id="modalCancel" type="button">Batal</button>
+        <button class="btn" id="modalOk" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+  <script src="assets/admin.js"></script>
+</body>
+</html>

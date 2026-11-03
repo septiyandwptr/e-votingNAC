@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E-Voting Ketua RT 06 / RW 10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="hero-green">
+    <div class="chips">
+      <span class="chip">✓ Tahap 3 Part 2: Pemungutan Suara</span>
+      <span class="chip red" id="countdown" hidden></span>
+    </div>
+    <h1>E-Voting Ketua RT 06 / RW 10</h1>
+    <p>Perumahan Nuansa Alam Cilebut • Periode 2026-2031</p>
+    <p style="margin-top:10px">Pilih 1 calon. Suara bersifat rahasia.</p>
+  </header>
+
+  <main class="wrap">
+    <!-- Loading -->
+    <section class="card" id="loadingCard">
+      <div class="empty"><span class="spinner dark"></span> Memuat data calon…</div>
+    </section>
+
+    <!-- Ditutup -->
+    <section class="card" id="closedCard" hidden>
+      <div class="success-box">
+        <div class="check" style="background:var(--red-soft);color:var(--red)">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </div>
+        <h2>Pemungutan suara sedang ditutup</h2>
+        <p>Silakan pantau informasi dari panitia.</p>
+        <a class="btn outline" href="livecount.html">Lihat Live Count →</a>
+      </div>
+    </section>
+
+    <!-- Sudah vote -->
+    <section class="card" id="doneCard" hidden>
+      <div class="success-box">
+        <div class="check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h2>Terima kasih!</h2>
+        <p id="doneText">Suara Anda sudah tercatat. Perangkat ini hanya dapat digunakan untuk memilih 1 kali.</p>
+        <a class="btn" href="livecount.html">Lihat Live Count →</a>
+      </div>
+    </section>
+
+    <!-- Form vote -->
+    <section class="card" id="voteCard" hidden>
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="rumah">Nomor Rumah</label>
+          <input class="input upper" id="rumah" placeholder="Contoh: A1" autocomplete="off" maxlength="10" required>
+          <div class="error-text" id="rumahErr" hidden></div>
+        </div>
+
+        <div class="cand-grid" id="cands" role="radiogroup" aria-label="Daftar calon"></div>
+
+        <button class="btn block" id="submit" type="submit">Kirim Suara</button>
+        <p style="text-align:center;margin:14px 0 0"><a href="livecount.html">Lihat Live Count →</a></p>
+      </form>
+    </section>
+
+    <footer class="footer">Panitia Pemilihan Ketua RT 06 / RW 10</footer>
+  </main>
+
+  <!-- Modal konfirmasi -->
+  <div class="modal-bg" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <p id="confirmText"></p>
+      <div class="actions">
+        <button class="btn outline" id="cancel" type="button">Batal</button>
+        <button class="btn" id="confirm" type="button">Ya, Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      let calon = [], selected = null;
+
+      function show(id) {
+        ["loadingCard", "closedCard", "doneCard", "voteCard"].forEach((c) => ($(c).hidden = c !== id));
+      }
+
+      function renderCands() {
+        $("cands").innerHTML = calon.map((c, i) => `
+          <label class="cand" data-no="${App.esc(c.nomor)}">
+            <input type="radio" name="calon" value="${App.esc(c.nomor)}">
+            <span class="no">${App.esc(c.nomor)}</span>
+            <span class="radio"></span>
+            ${App.avatar(c, i)}
+            <div class="name">${App.esc(App.cleanName(c.nama))}</div>
+            ${c.tagline ? `<div class="tag">${App.esc(c.tagline)}</div>` : ""}
+          </label>`).join("");
+        $("cands").querySelectorAll(".cand").forEach((el) => {
+          el.addEventListener("click", () => {
+            selected = el.dataset.no;
+            $("cands").querySelectorAll(".cand").forEach((x) => x.classList.toggle("selected", x === el));
+          });
+        });
+      }
+
+      let serverResetVersion = "1";
+
+      async function init() {
+        try {
+          const s = await App.api("status");
+          serverResetVersion = s.resetVersion || "1";
+
+          // Cek apakah ada data vote lama dari sesi sebelum reset
+          const localVersion = App.store.get("voted_version") || "1";
+          if (localVersion !== serverResetVersion) {
+            // Admin telah melakukan reset: bersihkan batasan vote di perangkat ini
+            App.store.remove("voted");
+            App.store.remove("voted_info");
+            App.store.remove("voted_version");
+          } else if (App.store.get("voted")) {
+            const info = App.store.get("voted_info");
+            if (info) $("doneText").textContent = info;
+            show("doneCard");
+            return;
+          }
+
+          calon = s.calon || [];
+          if (!s.part2.open || !calon.length) { show("closedCard"); return; }
+          App.countdown($("countdown"), s.part2.tutup, () => show("closedCard"));
+          renderCands();
+          show("voteCard");
+        } catch (e) {
+          $("loadingCard").innerHTML = '<div class="empty">Gagal memuat data. ' + App.esc(e.message) + "</div>";
+        }
+      }
+
+      $("rumah").addEventListener("blur", () => {
+        const v = App.normRumah($("rumah").value);
+        if (v) $("rumah").value = v;
+      });
+
+      $("form").addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const rumah = App.normRumah($("rumah").value);
+        $("rumahErr").hidden = true;
+        if (!App.validRumah(rumah)) {
+          $("rumahErr").textContent = "Format nomor rumah tidak valid (contoh: A1).";
+          $("rumahErr").hidden = false;
+          $("rumah").focus();
+          return;
+        }
+        if (!selected) { App.toast("Silakan pilih salah satu calon.", "error"); return; }
+        const c = calon.find((x) => x.nomor === selected);
+        $("confirmText").innerHTML = `Yakin memilih <b>${App.esc(c.nomor)} – ${App.esc(App.cleanName(c.nama))}</b>?<br>Suara tidak bisa diubah.`;
+        $("modal").hidden = false;
+      });
+
+      $("cancel").addEventListener("click", () => ($("modal").hidden = true));
+      $("modal").addEventListener("click", (e) => { if (e.target.id === "modal") $("modal").hidden = true; });
+
+      $("confirm").addEventListener("click", async () => {
+        const btn = $("confirm");
+        App.setLoading(btn, true);
+        try {
+          const rumah = App.normRumah($("rumah").value);
+          await App.api("submitVote", { rumah, nomor: selected, deviceId: App.deviceId() });
+          const info = "Suara dari rumah " + rumah + " sudah tercatat. Perangkat ini hanya dapat digunakan untuk memilih 1 kali.";
+          App.store.set("voted", "1");
+          App.store.set("voted_version", serverResetVersion);
+          App.store.set("voted_info", info);
+          $("doneText").textContent = info;
+          $("modal").hidden = true;
+          show("doneCard");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (e) {
+          $("modal").hidden = true;
+          App.toast(e.message, "error");
+        } finally {
+          App.setLoading(btn, false);
+        }
+      });
+
+      init();
+    })();
+  </script>
+</body>
+</html>

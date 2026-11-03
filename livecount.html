@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Count Pemilihan Ketua RT 06 / RW 10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="wrap-wide">
+    <header class="lc-head">
+      <div>
+        <h1>Live Count Pemilihan Ketua RT 06 / RW 10</h1>
+        <p>Perumahan Nuansa Alam Cilebut • Periode 2026-2031 • Tahap 3 Part 2</p>
+      </div>
+      <div class="right">
+        <span class="chip live" id="liveChip">● LIVE</span>
+        <span>Terakhir diperbarui: <b id="updated">–</b></span>
+      </div>
+    </header>
+
+    <section class="stats">
+      <div class="card stat"><div class="label">Total Suara Masuk</div><div class="value" id="total">–</div></div>
+      <div class="card stat"><div class="label">Total Hak Suara</div><div class="value" id="hak">–</div></div>
+      <div class="card stat">
+        <div class="label">Partisipasi</div><div class="value" id="pct">–</div>
+        <div class="progress"><div id="pctBar" style="width:0"></div></div>
+      </div>
+    </section>
+
+    <section class="lc-main">
+      <div class="card">
+        <h3>Perolehan Suara Calon Ketua RT</h3>
+        <div class="lc-results">
+          <div id="bars"><div class="empty"><span class="spinner dark"></span> Memuat…</div></div>
+          <div class="donut-wrap">
+            <div class="donut" id="donut" style="background:#e5e7eb"></div>
+            <div class="legend" id="legend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Aktivitas Terbaru</h3>
+        <div class="activity" id="activity"><div>Belum ada suara masuk</div></div>
+      </div>
+    </section>
+
+    <p class="note">Hasil resmi diumumkan panitia setelah voting ditutup</p>
+    <p class="note" style="margin-top:6px"><a href="index.html">← Kembali ke beranda</a></p>
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      let lastRecent = "";
+
+      function render(d) {
+        $("total").textContent = d.total;
+        $("hak").textContent = d.hakSuara;
+        const pct = d.hakSuara ? (d.total / d.hakSuara) * 100 : 0;
+        $("pct").textContent = App.fmtPct(pct);
+        $("pctBar").style.width = Math.min(pct, 100) + "%";
+        $("updated").textContent = App.fmtTimeSec(d.updatedAt);
+
+        const live = $("liveChip");
+        if (d.part2.open) { live.className = "chip live"; live.textContent = "● LIVE"; }
+        else { live.className = "chip gray"; live.textContent = "Voting ditutup"; }
+
+        if (!d.calon.length) {
+          $("bars").innerHTML = '<div class="empty">Calon belum ditetapkan panitia.</div>';
+          return;
+        }
+
+        const max = Math.max.apply(null, d.calon.map((c) => c.suara));
+        $("bars").innerHTML = d.calon.map((c, i) => {
+          const p = d.total ? (c.suara / d.total) * 100 : 0;
+          const lead = c.suara > 0 && c.suara === max;
+          return `
+            <div class="bar-row">
+              <div class="avatar-wrap">${App.avatar(c, i, "avatar sm")}${lead ? '<span class="crown">👑</span>' : ""}</div>
+              <div>
+                <div class="bar-top"><span>${App.esc(c.nomor)} ${App.esc(App.cleanName(c.nama))}</span><span class="val">${c.suara} suara (${App.fmtPct(p)})</span></div>
+                <div class="bar"><div style="width:${max ? (c.suara / max) * 100 : 0}%;background:${App.color(i)}"></div></div>
+              </div>
+            </div>`;
+        }).join("");
+
+        // Donut chart
+        if (d.total) {
+          let acc = 0;
+          const stops = d.calon.map((c, i) => {
+            const from = acc; acc += (c.suara / d.total) * 360;
+            return `${App.color(i)} ${from}deg ${acc}deg`;
+          });
+          $("donut").style.background = `conic-gradient(${stops.join(",")})`;
+        } else {
+          $("donut").style.background = "#e5e7eb";
+        }
+        $("legend").innerHTML = d.calon.map((c, i) =>
+          `<div><span style="background:${App.color(i)}"></span>${App.esc(App.cleanName(c.nama))}</div>`).join("");
+
+        // Aktivitas
+        const key = d.recent.join("|");
+        if (key !== lastRecent) {
+          $("activity").innerHTML = d.recent.length
+            ? d.recent.map((t, i) => `<div class="${lastRecent && i === 0 ? "new" : ""}">1 suara masuk — ${App.fmtTime(t)}</div>`).join("")
+            : "<div>Belum ada suara masuk</div>";
+          lastRecent = key;
+        }
+      }
+
+      async function load() {
+        try {
+          render(await App.api("liveCount"));
+        } catch (e) {
+          App.toast(e.message, "error");
+        }
+      }
+
+      load();
+      setInterval(() => { if (!document.hidden) load(); }, App.config.LIVE_REFRESH_MS || 10000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+    })();
+  </script>
+</body>
+</html>
