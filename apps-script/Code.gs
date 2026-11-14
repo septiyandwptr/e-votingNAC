@@ -11,7 +11,7 @@
 
 const SHEETS = {
   RUMAH:   { name: 'Rumah',   headers: ['nomor_rumah', 'kuota'] },
-  USULAN:  { name: 'Usulan',  headers: ['waktu', 'nomor_rumah', 'nama_calon', 'nama_gabung'] },
+  USULAN:  { name: 'Usulan',  headers: ['waktu', 'nomor_rumah', 'nama_pemilih', 'nama_calon', 'nama_gabung'] },
   CALON:   { name: 'Calon',   headers: ['nomor_urut', 'nama', 'tagline', 'foto_url'] },
   SUARA:   { name: 'Suara',   headers: ['waktu', 'nomor_rumah', 'nomor_calon', 'device_id', 'status', 'catatan'] },
   SETTING: { name: 'Setting', headers: ['kunci', 'nilai'] },
@@ -101,6 +101,10 @@ const ACTIONS = {
       if (!phase_('part1').open) throw new Error('Pengajuan nama calon sedang ditutup.');
       const rumah = normRumah_(d.rumah);
       const kuota = getKuota_(rumah);
+      const pemilih = String(d.pemilih || '').replace(/\s+/g, ' ').trim();
+      if (pemilih.length < 2) throw new Error('Nama pemilih / pengusul wajib diisi.');
+      if (pemilih.length > 60) throw new Error('Nama pemilih terlalu panjang.');
+
       const nama = String(d.nama || '').replace(/\s+/g, ' ').trim();
       if (nama.length < 3) throw new Error('Nama calon terlalu pendek.');
       if (nama.length > 80) throw new Error('Nama calon terlalu panjang.');
@@ -108,7 +112,7 @@ const ACTIONS = {
       const used = rows_(SHEETS.USULAN).filter(function (r) { return r[1] === rumah; }).length;
       if (used >= kuota) throw new Error('Rumah ' + rumah + ' sudah mencapai batas ' + kuota + ' usulan.');
 
-      sheet_(SHEETS.USULAN).appendRow([new Date(), rumah, safe_(nama), '']);
+      sheet_(SHEETS.USULAN).appendRow([new Date(), rumah, safe_(pemilih), safe_(nama), '']);
       return { rumah: rumah, sisa: kuota - used - 1 };
     });
   },
@@ -190,11 +194,17 @@ const ACTIONS = {
     const order = [];
     const list = data.map(function (x) {
       const r = x.values;
-      const final = String(r[3] || r[2]);
+      // Kolom: 0=waktu, 1=rumah, 2=pemilih, 3=calon, 4=gabung
+      // Jika data lama 4 kolom: 2=calon, 3=gabung
+      const is5Col = r.length >= 5;
+      const pemilih = is5Col ? String(r[2] || '') : '';
+      const calon = is5Col ? String(r[3] || '') : String(r[2] || '');
+      const gabung = is5Col ? String(r[4] || '') : String(r[3] || '');
+      const final = gabung || calon;
       const key = nameKey_(final);
       if (!groups[key]) { groups[key] = { nama: final, jumlah: 0 }; order.push(key); }
       groups[key].jumlah++;
-      return { row: x.row, waktu: iso_(r[0]), rumah: r[1], nama: r[2], final: final };
+      return { row: x.row, waktu: iso_(r[0]), rumah: r[1], pemilih: pemilih, nama: calon, final: final };
     });
     const ranking = order.map(function (k) { return groups[k]; })
       .sort(function (a, b) { return b.jumlah - a.jumlah; });
@@ -215,8 +225,12 @@ const ACTIONS = {
       const sh = sheet_(SHEETS.USULAN);
       let n = 0;
       rows_(SHEETS.USULAN, true).forEach(function (x) {
-        if (nameKey_(x.values[3] || x.values[2]) === from) {
-          sh.getRange(x.row, 4).setValue(to);
+        const is5Col = x.values.length >= 5;
+        const calon = is5Col ? x.values[3] : x.values[2];
+        const gabung = is5Col ? x.values[4] : x.values[3];
+        const targetCol = is5Col ? 5 : 4;
+        if (nameKey_(gabung || calon) === from) {
+          sh.getRange(x.row, targetCol).setValue(to);
           n++;
         }
       });

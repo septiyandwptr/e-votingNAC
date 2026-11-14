@@ -281,7 +281,7 @@
     } else {
       logBox.innerHTML = data.rows.map((r) => `
         <div>
-          <span><b>Rumah ${App.esc(r.rumah)}</b> → ${App.esc(r.final)}</span>
+          <span><b>Rumah ${App.esc(r.rumah)}</b>${r.pemilih ? ` (${App.esc(r.pemilih)})` : ''} → ${App.esc(r.final)}</span>
           <small>${App.fmtTime(r.waktu)} <button class="link-btn red del-usulan" data-row="${r.row}" data-rumah="${App.esc(r.rumah)}">hapus</button></small>
         </div>
       `).join("");
@@ -366,9 +366,9 @@
   // Download CSV usulan
   $("uCsv").addEventListener("click", () => {
     if (!cachedUsulan || !cachedUsulan.rows.length) return;
-    let csv = "Waktu,Nomor Rumah,Nama Diusulkan,Nama Hasil Gabungan\n";
+    let csv = "Waktu,Nomor Rumah,Nama Pemilih,Nama Diusulkan,Nama Hasil Gabungan\n";
     cachedUsulan.rows.forEach((r) => {
-      csv += `"${r.waktu}","${r.rumah}","${r.nama.replace(/"/g, '""')}","${r.final.replace(/"/g, '""')}"\n`;
+      csv += `"${r.waktu}","${r.rumah}","${(r.pemilih || '').replace(/"/g, '""')}","${r.nama.replace(/"/g, '""')}","${r.final.replace(/"/g, '""')}"\n`;
     });
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");

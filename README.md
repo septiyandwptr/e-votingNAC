@@ -97,7 +97,7 @@ Ada 2 cara mudah:
 ### 1. Tahap 3 Part 1: Pengajuan Nama Calon
 1. Panitia membuka saklar **Part 1** di panel admin (atau jadwalkan otomatis di menu Pengaturan).
 2. Bagikan link `usulan.html` (atau halaman utama `index.html`) ke grup WhatsApp warga.
-3. Warga mengisi **Nomor Rumah** dan **Nama Calon yang Diajukan** (contoh saran format: *Jefri Nichol - Z1*).
+3. Warga mengisi **Nomor Rumah**, **Nama Pemilih / Pengusul**, dan **Nama Calon yang Diajukan** (contoh saran format: *Jefri Nichol - Z1*).
 4. Setiap nomor rumah hanya dapat mengajukan usulan maksimal sesuai kuota rumahnya (1 atau 2 kali).
 5. Rekap usulan **hanya bisa dilihat oleh Panitia** di panel admin menu **Rekap Usulan (Part 1)**.
 

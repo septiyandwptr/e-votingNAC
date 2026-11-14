@@ -29,6 +29,11 @@
           <div class="error-text" id="rumahErr" hidden></div>
         </div>
         <div class="field">
+          <label for="pemilih">Nama Pemilih / Pengusul</label>
+          <input class="input" id="pemilih" name="pemilih" placeholder="Contoh: Rizky Ridho" autocomplete="name" maxlength="60" required>
+          <div class="help">Nama warga yang mengajukan usulan</div>
+        </div>
+        <div class="field">
           <label for="nama">Nama Calon yang Diajukan</label>
           <input class="input" id="nama" name="nama" placeholder="Contoh: Jefri Nichol - Z1" autocomplete="off" maxlength="80" required>
           <div class="help">Format disarankan: Nama - Nomor Rumah calon</div>
@@ -83,6 +88,7 @@
       form.addEventListener("submit", async (ev) => {
         ev.preventDefault();
         const rumah = App.normRumah($("rumah").value);
+        const pemilih = $("pemilih").value.trim();
         const nama = $("nama").value.trim();
         $("rumahErr").hidden = true;
 
@@ -92,16 +98,21 @@
           $("rumah").focus();
           return;
         }
+        if (pemilih.length < 2) {
+          App.toast("Nama pemilih / pengusul wajib diisi.", "error");
+          $("pemilih").focus();
+          return;
+        }
         if (nama.length < 3) {
-          App.toast("Nama calon wajib diisi.", "error");
+          App.toast("Nama calon yang diajukan wajib diisi.", "error");
           $("nama").focus();
           return;
         }
 
         App.setLoading(btn, true);
         try {
-          const r = await App.api("submitUsulan", { rumah, nama });
-          $("doneText").textContent = "Terima kasih! Usulan dari rumah " + r.rumah + " sudah tercatat." +
+          const r = await App.api("submitUsulan", { rumah, pemilih, nama });
+          $("doneText").textContent = "Terima kasih, " + pemilih + "! Usulan dari rumah " + r.rumah + " sudah tercatat." +
             (r.sisa > 0 ? " Sisa kuota usulan rumah ini: " + r.sisa + "." : " Kuota usulan rumah ini sudah habis.");
           $("again").hidden = r.sisa <= 0;
           $("formCard").hidden = true;
