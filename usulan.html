@@ -47,7 +47,6 @@
         <div class="check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
         <h2>Usulan terkirim</h2>
         <p id="doneText"></p>
-        <button class="btn outline" id="again" type="button">Ajukan nama lain</button>
       </div>
     </section>
 
@@ -114,7 +113,6 @@
           const r = await App.api("submitUsulan", { rumah, pemilih, nama });
           $("doneText").textContent = "Terima kasih, " + pemilih + "! Usulan dari rumah " + r.rumah + " sudah tercatat." +
             (r.sisa > 0 ? " Sisa kuota usulan rumah ini: " + r.sisa + "." : " Kuota usulan rumah ini sudah habis.");
-          $("again").hidden = r.sisa <= 0;
           $("formCard").hidden = true;
           $("doneCard").hidden = false;
           $("nama").value = "";
@@ -123,12 +121,6 @@
         } finally {
           App.setLoading(btn, false);
         }
-      });
-
-      $("again").addEventListener("click", () => {
-        $("doneCard").hidden = true;
-        $("formCard").hidden = false;
-        $("nama").focus();
       });
 
       loadStatus();
