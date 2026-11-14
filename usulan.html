@@ -39,6 +39,7 @@
           <div class="help">Format disarankan: Nama - Nomor Rumah calon</div>
         </div>
         <button class="btn block" id="submit" type="submit" disabled>Kirim Usulan</button>
+        <div class="help" style="text-align:center;margin-top:10px">1 perangkat (HP) hanya dapat mengajukan usulan 1 kali</div>
       </form>
     </section>
 
@@ -47,6 +48,7 @@
         <div class="check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
         <h2>Usulan terkirim</h2>
         <p id="doneText"></p>
+        <p style="margin-top:16px"><a href="index.html">← Kembali ke Beranda</a></p>
       </div>
     </section>
 
@@ -59,10 +61,28 @@
     (function () {
       const $ = (id) => document.getElementById(id);
       const form = $("form"), btn = $("submit");
+      let serverResetVersion = "1";
 
       async function loadStatus() {
         try {
           const s = await App.api("status");
+          serverResetVersion = s.resetVersion || "1";
+
+          // Cek apakah ada data usulan lama dari sesi sebelum reset
+          const localVersion = App.store.get("usul_version") || "1";
+          if (localVersion !== serverResetVersion) {
+            // Admin telah me-reset: bersihkan batasan usulan di perangkat ini
+            App.store.remove("usul_submitted");
+            App.store.remove("usul_info");
+            App.store.remove("usul_version");
+          } else if (App.store.get("usul_submitted")) {
+            const info = App.store.get("usul_info");
+            $("doneText").textContent = info || "Usulan Anda sudah tercatat. Perangkat ini hanya dapat digunakan untuk mengajukan nama 1 kali.";
+            $("formCard").hidden = true;
+            $("doneCard").hidden = false;
+            return;
+          }
+
           const p = s.part1;
           if (p.open) {
             $("bannerText").textContent = "Tahap 3 Part 1: Pengajuan Nama Calon — " +
@@ -110,12 +130,18 @@
 
         App.setLoading(btn, true);
         try {
-          const r = await App.api("submitUsulan", { rumah, pemilih, nama });
-          $("doneText").textContent = "Terima kasih, " + pemilih + "! Usulan dari rumah " + r.rumah + " sudah tercatat." +
-            (r.sisa > 0 ? " Sisa kuota usulan rumah ini: " + r.sisa + "." : " Kuota usulan rumah ini sudah habis.");
+          const r = await App.api("submitUsulan", { rumah, pemilih, nama, deviceId: App.deviceId() });
+          const info = "Terima kasih, " + pemilih + "! Usulan dari rumah " + r.rumah + " sudah tercatat." +
+            (r.sisa > 0 ? " Sisa kuota usulan rumah ini: " + r.sisa + "." : " Kuota usulan rumah ini sudah habis.") +
+            " Perangkat ini hanya dapat digunakan untuk mengajukan usulan 1 kali.";
+          App.store.set("usul_submitted", "1");
+          App.store.set("usul_version", serverResetVersion);
+          App.store.set("usul_info", info);
+          $("doneText").textContent = info;
           $("formCard").hidden = true;
           $("doneCard").hidden = false;
           $("nama").value = "";
+          window.scrollTo({ top: 0, behavior: "smooth" });
         } catch (e) {
           App.toast(e.message, "error");
         } finally {

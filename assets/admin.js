@@ -282,7 +282,7 @@
       logBox.innerHTML = data.rows.map((r) => `
         <div>
           <span><b>Rumah ${App.esc(r.rumah)}</b>${r.pemilih ? ` (${App.esc(r.pemilih)})` : ''} → ${App.esc(r.final)}</span>
-          <small>${App.fmtTime(r.waktu)} <button class="link-btn red del-usulan" data-row="${r.row}" data-rumah="${App.esc(r.rumah)}">hapus</button></small>
+          <small>${r.device ? `<code>${App.esc(r.device)}</code> • ` : ''}${App.fmtTime(r.waktu)} <button class="link-btn red del-usulan" data-row="${r.row}" data-rumah="${App.esc(r.rumah)}">hapus</button></small>
         </div>
       `).join("");
 
@@ -366,9 +366,9 @@
   // Download CSV usulan
   $("uCsv").addEventListener("click", () => {
     if (!cachedUsulan || !cachedUsulan.rows.length) return;
-    let csv = "Waktu,Nomor Rumah,Nama Pemilih,Nama Diusulkan,Nama Hasil Gabungan\n";
+    let csv = "Waktu,Nomor Rumah,Nama Pemilih,Nama Diusulkan,ID Perangkat,Nama Hasil Gabungan\n";
     cachedUsulan.rows.forEach((r) => {
-      csv += `"${r.waktu}","${r.rumah}","${(r.pemilih || '').replace(/"/g, '""')}","${r.nama.replace(/"/g, '""')}","${r.final.replace(/"/g, '""')}"\n`;
+      csv += `"${r.waktu}","${r.rumah}","${(r.pemilih || '').replace(/"/g, '""')}","${r.nama.replace(/"/g, '""')}","${(r.device || '')}","${r.final.replace(/"/g, '""')}"\n`;
     });
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -630,10 +630,13 @@
     const hapusCalon = $("resetHapusCalon") ? $("resetHapusCalon").checked : true;
 
     try {
-      // Bersihkan batasan vote di browser panitia saat ini juga
+      // Bersihkan batasan vote & usulan di browser panitia saat ini juga
       App.store.remove("voted");
       App.store.remove("voted_info");
       App.store.remove("voted_version");
+      App.store.remove("usul_submitted");
+      App.store.remove("usul_info");
+      App.store.remove("usul_version");
 
       const res = await adminApi("adminResetData", { hapusCalon });
       App.toast(res.message || "Data uji coba berhasil direset!", "success");
