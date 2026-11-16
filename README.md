@@ -133,6 +133,13 @@ Ada 2 cara mudah:
   2. Data **Nomor Rumah & Kuota TETAP AMAN dan TIDAK AKAN HILANG**.
   3. **Batasan 1 Device/HP Otomatis Terbuka Kembali:** Sistem secara cerdas memperbarui versi sesi, sehingga seluruh HP/laptop yang sebelumnya sudah dipakai untuk voting uji coba akan langsung diizinkan memilih lagi tanpa perlu hapus cache/history browser secara manual.
 
+### 6. Fitur Export / Cetak Laporan Rekap Warga (PDF Transparan)
+- Panitia dapat mengunduh atau mencetak dokumen rekapitulasi resmi untuk dibagikan ke seluruh warga (misalnya ke grup WhatsApp warga):
+  - **Laporan Part 1 (Penjaringan Usulan):** Tersedia tombol **"📄 Download Rekap Usulan (PDF)"** di panel admin (tab Rekap Usulan). Menampilkan metrik total usulan, partisipasi rumah, **Top 3 Calon Teratas yang Lolos ke E-Voting**, serta **Daftar Lengkap Seluruh Nama Usulan Lainnya** agar seluruh warga tahu usulannya masuk dan tercatat transparan.
+  - **Laporan Part 2 (Hasil Akhir E-Voting):** Tersedia tombol **"📄 Download Rekap Hasil E-Voting (PDF)"** di panel admin (tab Log Suara) dan juga di halaman **Live Count** (`livecount.html`). Menampilkan total hak suara, suara sah, tingkat partisipasi, pengumuman Ketua RT terpilih, dan rincian perolehan suara seluruh kandidat.
+- **100% Anonim & Menjaga Privasi:** Dokumen ini murni menyajikan data statistik dan perolehan suara calon. Sama sekali **tidak menampilkan nama pemilih, nomor rumah, maupun ID perangkat warga**, sehingga kerahasiaan pilihan warga tetap terjamin sepenuhnya.
+- **1-Klik Save as PDF:** Menggunakan tampilan infografis A4 modern standar. Begitu tombol diklik, preview langsung muncul di layar dan dialog cetak/Simpan sebagai PDF browser akan otomatis aktif.
+
 ---
 
 ## 🌐 Cara Publish / Hosting Gratis

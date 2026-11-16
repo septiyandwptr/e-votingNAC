@@ -259,7 +259,7 @@
           <td>${item.jumlah} usulan</td>
           <td>
             <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-right:12px">
-              <input type="checkbox" class="calon-pick" data-nama="${App.esc(item.nama)}" ${idx < 4 ? "checked" : ""}>
+              <input type="checkbox" class="calon-pick" data-nama="${App.esc(item.nama)}" ${idx < 3 ? "checked" : ""}>
               Pilih Calon
             </label>
             <button class="link-btn merge-btn" data-from="${App.esc(item.nama)}">+ Gabungkan</button>
@@ -343,7 +343,7 @@
       return;
     }
     if (picked.length > 5) {
-      if (!confirm(`Anda memilih ${picked.length} calon (biasanya 3-4 calon). Lanjutkan?`)) return;
+      if (!confirm(`Anda memilih ${picked.length} calon (biasanya 3 calon). Lanjutkan?`)) return;
     }
 
     const calonList = picked.map((nama, idx) => ({
@@ -376,6 +376,21 @@
     link.download = `rekap-usulan-rt06-${Date.now()}.csv`;
     link.click();
   });
+
+  // Download Rekap Usulan (PDF / Cetak)
+  const uPdfBtn = $("uPdf");
+  if (uPdfBtn) {
+    uPdfBtn.addEventListener("click", () => {
+      if (!cachedUsulan) {
+        App.toast("Data usulan belum termuat.", "error");
+        return;
+      }
+      const totalRumah = (cachedDash && cachedDash.totalRumah) ? cachedDash.totalRumah : (cachedUsulan.rumahUsul || 120);
+      const isClosed = cachedDash && cachedDash.status && cachedDash.status.part1 ? !cachedDash.status.part1.open : false;
+      const html = App.renderUsulanReport(cachedUsulan, { totalRumah, isClosed });
+      App.showReportModal("Rekap Hasil Penjaringan Calon Ketua RT (Part 1)", html);
+    });
+  }
 
   /* ================= 3. KELOLA CALON ================= */
   async function loadCalon() {
@@ -487,6 +502,24 @@
     } catch (e) {
       App.toast(e.message, "error");
     }
+  }
+
+  // Download Rekap Hasil E-Voting (PDF / Cetak)
+  const sPdfBtn = $("sPdf");
+  if (sPdfBtn) {
+    sPdfBtn.addEventListener("click", async () => {
+      try {
+        App.setLoading(sPdfBtn, true, "Menyiapkan...");
+        const data = await App.api("liveCount");
+        const isClosed = data && data.part2 ? !data.part2.open : true;
+        const html = App.renderVotingReport(data, { isClosed });
+        App.showReportModal("Rekapitulasi Hasil Akhir E-Voting Ketua RT (Part 2)", html);
+      } catch (e) {
+        App.toast("Gagal memuat data live count: " + e.message, "error");
+      } finally {
+        App.setLoading(sPdfBtn, false);
+      }
+    });
   }
 
   /* ================= 5. DATA RUMAH ================= */

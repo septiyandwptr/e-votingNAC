@@ -121,6 +121,7 @@
               <div class="row-actions">
                 <button class="btn" id="setCalonBtn" disabled>Tetapkan Calon untuk Part 2</button>
                 <button class="btn outline" id="uCsv">Download CSV</button>
+                <button class="btn outline" id="uPdf" type="button">📄 Download Rekap Usulan (PDF)</button>
               </div>
               <p class="help">Gunakan <b>Gabungkan</b> jika ada nama yang sama tapi penulisannya berbeda (mis. "Pak Jefri" dan "Jefri Nichol - Z1").</p>
             </div>
@@ -148,8 +149,13 @@
         <!-- SUARA -->
         <section data-view="suara" hidden>
           <div class="card">
-            <h3>Log Suara Masuk</h3>
-            <p class="help" style="margin-top:-6px">Pilihan calon tidak ditampilkan di sini untuk menjaga kerahasiaan suara. Batalkan suara hanya jika ada yang janggal (mis. nomor rumah salah / bukan warga).</p>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+              <div>
+                <h3 style="margin:0">Log Suara Masuk</h3>
+                <p class="help" style="margin:4px 0 0">Pilihan calon tidak ditampilkan di sini untuk menjaga kerahasiaan suara. Batalkan suara hanya jika ada yang janggal (mis. nomor rumah salah / bukan warga).</p>
+              </div>
+              <button class="btn outline sm" id="sPdf" type="button">📄 Download Rekap Hasil E-Voting (PDF)</button>
+            </div>
             <div class="table-wrap">
               <table>
                 <thead><tr><th>Waktu</th><th>Nomor Rumah</th><th>ID Perangkat</th><th>Status</th><th>Catatan</th><th>Aksi</th></tr></thead>

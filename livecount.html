@@ -15,7 +15,8 @@
         <h1>Live Count Pemilihan Ketua RT 06 / RW 10</h1>
         <p>Perumahan Nuansa Alam Cilebut • Periode 2026-2031 • Tahap 3 Part 2</p>
       </div>
-      <div class="right">
+      <div class="right" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn outline sm" id="lcExportPdf" type="button">📄 Download Rekap (PDF)</button>
         <span class="chip live" id="liveChip">● LIVE</span>
         <span>Terakhir diperbarui: <b id="updated">–</b></span>
       </div>
@@ -57,8 +58,10 @@
     (function () {
       const $ = (id) => document.getElementById(id);
       let lastRecent = "";
+      let cachedData = null;
 
       function render(d) {
+        cachedData = d;
         $("total").textContent = d.total;
         $("hak").textContent = d.hakSuara;
         const pct = d.hakSuara ? (d.total / d.hakSuara) * 100 : 0;
@@ -124,6 +127,19 @@
       load();
       setInterval(() => { if (!document.hidden) load(); }, App.config.LIVE_REFRESH_MS || 10000);
       document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+
+      const lcExportBtn = $("lcExportPdf");
+      if (lcExportBtn) {
+        lcExportBtn.addEventListener("click", () => {
+          if (!cachedData) {
+            App.toast("Data belum siap, silakan tunggu sebentar.", "error");
+            return;
+          }
+          const isClosed = cachedData && cachedData.part2 ? !cachedData.part2.open : true;
+          const html = App.renderVotingReport(cachedData, { isClosed });
+          App.showReportModal("Rekapitulasi Hasil Akhir E-Voting Ketua RT (Part 2)", html);
+        });
+      }
     })();
   </script>
 </body>
