@@ -2,9 +2,11 @@
  * Logic Admin Panitia RT 06 / RW 10
  */
 (function () {
+  const App = window.App;
   const $ = (id) => document.getElementById(id);
   let adminPw = sessionStorage.getItem("rt06_admin_pw") || "";
   let currentTab = "dashboard";
+  let cachedDash = null;
   let cachedUsulan = null;
   let cachedCalon = [];
   let cachedRumah = [];
@@ -163,6 +165,7 @@
   /* ================= 1. DASHBOARD ================= */
   async function loadDashboard() {
     const d = await adminApi("adminDashboard");
+    cachedDash = d;
     $("dRumah").textContent = d.totalRumah;
     $("dHak").textContent = "Total hak suara: " + d.hakSuara;
     $("dUsulan").textContent = d.totalUsulan;
@@ -378,18 +381,56 @@
   });
 
   // Download Rekap Usulan (PDF / Cetak)
-  const uPdfBtn = $("uPdf");
-  if (uPdfBtn) {
-    uPdfBtn.addEventListener("click", () => {
+  async function triggerUsulanPdf(btn) {
+    try {
+      if (btn) App.setLoading(btn, true, "Menyiapkan...");
       if (!cachedUsulan) {
-        App.toast("Data usulan belum termuat.", "error");
-        return;
+        cachedUsulan = await adminApi("adminUsulan");
+      }
+      if (!cachedDash) {
+        try { cachedDash = await adminApi("adminDashboard"); } catch (_) {}
       }
       const totalRumah = (cachedDash && cachedDash.totalRumah) ? cachedDash.totalRumah : (cachedUsulan.rumahUsul || 120);
-      const isClosed = cachedDash && cachedDash.status && cachedDash.status.part1 ? !cachedDash.status.part1.open : false;
+      const isClosed = cachedDash && cachedDash.part1 ? !cachedDash.part1.open : false;
       const html = App.renderUsulanReport(cachedUsulan, { totalRumah, isClosed });
-      App.showReportModal("Rekap Hasil Penjaringan Calon Ketua RT (Part 1)", html);
-    });
+      App.showReportModal("Rekap Hasil Penjaringan Calon Ketua RT (Part 1)", html, "rekap-usulan-calon-rt06.pdf");
+    } catch (e) {
+      App.toast("Gagal menyiapkan rekap usulan: " + e.message, "error");
+    } finally {
+      if (btn) App.setLoading(btn, false);
+    }
+  }
+
+  async function triggerVotingPdf(btn) {
+    try {
+      if (btn) App.setLoading(btn, true, "Menyiapkan...");
+      const data = await App.api("liveCount");
+      if (!cachedDash) {
+        try { cachedDash = await adminApi("adminDashboard"); } catch (_) {}
+      }
+      const isClosed = cachedDash && cachedDash.part2 ? !cachedDash.part2.open : (data && data.part2 ? !data.part2.open : false);
+      const html = App.renderVotingReport(data, { isClosed });
+      App.showReportModal("Rekapitulasi E-Voting Ketua RT (Part 2)", html, "rekap-hasil-evoting-rt06.pdf");
+    } catch (e) {
+      App.toast("Gagal memuat data live count: " + e.message, "error");
+    } finally {
+      if (btn) App.setLoading(btn, false);
+    }
+  }
+
+  const uPdfBtn = $("uPdf");
+  if (uPdfBtn) {
+    uPdfBtn.addEventListener("click", () => triggerUsulanPdf(uPdfBtn));
+  }
+
+  const dPdfUsulanBtn = $("dPdfUsulan");
+  if (dPdfUsulanBtn) {
+    dPdfUsulanBtn.addEventListener("click", () => triggerUsulanPdf(dPdfUsulanBtn));
+  }
+
+  const dPdfVotingBtn = $("dPdfVoting");
+  if (dPdfVotingBtn) {
+    dPdfVotingBtn.addEventListener("click", () => triggerVotingPdf(dPdfVotingBtn));
   }
 
   /* ================= 3. KELOLA CALON ================= */
@@ -507,19 +548,7 @@
   // Download Rekap Hasil E-Voting (PDF / Cetak)
   const sPdfBtn = $("sPdf");
   if (sPdfBtn) {
-    sPdfBtn.addEventListener("click", async () => {
-      try {
-        App.setLoading(sPdfBtn, true, "Menyiapkan...");
-        const data = await App.api("liveCount");
-        const isClosed = data && data.part2 ? !data.part2.open : true;
-        const html = App.renderVotingReport(data, { isClosed });
-        App.showReportModal("Rekapitulasi Hasil Akhir E-Voting Ketua RT (Part 2)", html);
-      } catch (e) {
-        App.toast("Gagal memuat data live count: " + e.message, "error");
-      } finally {
-        App.setLoading(sPdfBtn, false);
-      }
-    });
+    sPdfBtn.addEventListener("click", () => triggerVotingPdf(sPdfBtn));
   }
 
   /* ================= 5. DATA RUMAH ================= */

@@ -52,6 +52,7 @@
     <p class="note" style="margin-top:6px"><a href="index.html">← Kembali ke beranda</a></p>
   </main>
 
+  <script src="assets/html2pdf.bundle.min.js"></script>
   <script src="assets/config.js"></script>
   <script src="assets/app.js"></script>
   <script>
@@ -135,9 +136,9 @@
             App.toast("Data belum siap, silakan tunggu sebentar.", "error");
             return;
           }
-          const isClosed = cachedData && cachedData.part2 ? !cachedData.part2.open : true;
+          const isClosed = cachedData && cachedData.part2 ? !cachedData.part2.open : false;
           const html = App.renderVotingReport(cachedData, { isClosed });
-          App.showReportModal("Rekapitulasi Hasil Akhir E-Voting Ketua RT (Part 2)", html);
+          App.showReportModal("Rekapitulasi E-Voting Ketua RT (Part 2)", html, "rekap-hasil-evoting-rt06.pdf");
         });
       }
     })();
