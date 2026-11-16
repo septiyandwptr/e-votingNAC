@@ -52,7 +52,7 @@
       <form id="form" novalidate>
         <div class="field">
           <label for="rumah">Nomor Rumah</label>
-          <input class="input upper" id="rumah" placeholder="Contoh: A1" autocomplete="off" maxlength="10" required>
+          <input class="input upper" id="rumah" placeholder="Contoh: A1 atau B12B" autocomplete="off" maxlength="10" required>
           <div class="error-text" id="rumahErr" hidden></div>
         </div>
 
@@ -147,7 +147,7 @@
         const rumah = App.normRumah($("rumah").value);
         $("rumahErr").hidden = true;
         if (!App.validRumah(rumah)) {
-          $("rumahErr").textContent = "Format nomor rumah tidak valid (contoh: A1).";
+          $("rumahErr").textContent = "Format nomor rumah tidak valid (contoh: A1, B12B).";
           $("rumahErr").hidden = false;
           $("rumah").focus();
           return;

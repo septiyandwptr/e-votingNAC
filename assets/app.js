@@ -42,7 +42,7 @@
   };
 
   App.normRumah = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  App.validRumah = (s) => /^[A-Z]{1,3}[0-9]{1,4}$/.test(s);
+  App.validRumah = (s) => /^(?:[A-Z]{1,4}[0-9]{1,4}|[0-9]{1,4})[A-Z]{0,2}$/.test(s);
 
   App.esc = (s) =>
     String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -52,7 +52,7 @@
 
   App.initials = (name) =>
     String(name || "")
-      .replace(/\s*-\s*[A-Za-z]{1,3}\d{1,4}\s*$/, "")
+      .replace(/\s*-\s*[A-Za-z]{1,4}\d{1,4}[A-Za-z]{0,2}\s*$/, "")
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
@@ -60,8 +60,8 @@
       .join("")
       .toUpperCase();
 
-  /** Nama tanpa akhiran nomor rumah, mis. "Jefri Nichol - Z1" → "Jefri Nichol" */
-  App.cleanName = (name) => String(name || "").replace(/\s*-\s*[A-Za-z]{1,3}\d{1,4}\s*$/, "");
+  /** Nama tanpa akhiran nomor rumah, mis. "Jefri Nichol - Z1" atau "Budi - B12B" → "Budi" */
+  App.cleanName = (name) => String(name || "").replace(/\s*-\s*[A-Za-z]{1,4}\d{1,4}[A-Za-z]{0,2}\s*$/, "");
 
   App.avatar = function (c, i, cls) {
     cls = cls || "avatar";

@@ -11,7 +11,7 @@
 
 const SHEETS = {
   RUMAH:   { name: 'Rumah',   headers: ['nomor_rumah', 'kuota'] },
-  USULAN:  { name: 'Usulan',  headers: ['waktu', 'nomor_rumah', 'nama_pemilih', 'nama_calon', 'nama_gabung'] },
+  USULAN:  { name: 'Usulan',  headers: ['waktu', 'nomor_rumah', 'nama_pemilih', 'nama_calon', 'device_id', 'nama_gabung'] },
   CALON:   { name: 'Calon',   headers: ['nomor_urut', 'nama', 'tagline', 'foto_url'] },
   SUARA:   { name: 'Suara',   headers: ['waktu', 'nomor_rumah', 'nomor_calon', 'device_id', 'status', 'catatan'] },
   SETTING: { name: 'Setting', headers: ['kunci', 'nilai'] },
@@ -112,7 +112,14 @@ const ACTIONS = {
       const used = rows_(SHEETS.USULAN).filter(function (r) { return r[1] === rumah; }).length;
       if (used >= kuota) throw new Error('Rumah ' + rumah + ' sudah mencapai batas ' + kuota + ' usulan.');
 
-      sheet_(SHEETS.USULAN).appendRow([new Date(), rumah, safe_(pemilih), safe_(nama), '']);
+      sheet_(SHEETS.USULAN).appendRow([
+        new Date(),
+        rumah,
+        safe_(pemilih),
+        safe_(nama),
+        safe_(String(d.deviceId || '').slice(0, 64)),
+        ''
+      ]);
       return { rumah: rumah, sisa: kuota - used - 1 };
     });
   },
@@ -194,17 +201,26 @@ const ACTIONS = {
     const order = [];
     const list = data.map(function (x) {
       const r = x.values;
-      // Kolom: 0=waktu, 1=rumah, 2=pemilih, 3=calon, 4=gabung
-      // Jika data lama 4 kolom: 2=calon, 3=gabung
-      const is5Col = r.length >= 5;
-      const pemilih = is5Col ? String(r[2] || '') : '';
-      const calon = is5Col ? String(r[3] || '') : String(r[2] || '');
-      const gabung = is5Col ? String(r[4] || '') : String(r[3] || '');
+      // Kolom: 0=waktu, 1=rumah, 2=pemilih, 3=calon, 4=device_id, 5=gabung
+      const is6Col = r.length >= 6;
+      const is5Col = r.length === 5;
+      const pemilih = (is6Col || is5Col) ? String(r[2] || '') : '';
+      const calon = (is6Col || is5Col) ? String(r[3] || '') : String(r[2] || '');
+      const device = is6Col ? String(r[4] || '') : '';
+      const gabung = is6Col ? String(r[5] || '') : (is5Col ? String(r[4] || '') : String(r[3] || ''));
       const final = gabung || calon;
       const key = nameKey_(final);
       if (!groups[key]) { groups[key] = { nama: final, jumlah: 0 }; order.push(key); }
       groups[key].jumlah++;
-      return { row: x.row, waktu: iso_(r[0]), rumah: r[1], pemilih: pemilih, nama: calon, final: final };
+      return {
+        row: x.row,
+        waktu: iso_(r[0]),
+        rumah: r[1],
+        pemilih: pemilih,
+        nama: calon,
+        device: device ? device.slice(0, 8) : '',
+        final: final
+      };
     });
     const ranking = order.map(function (k) { return groups[k]; })
       .sort(function (a, b) { return b.jumlah - a.jumlah; });
@@ -225,10 +241,12 @@ const ACTIONS = {
       const sh = sheet_(SHEETS.USULAN);
       let n = 0;
       rows_(SHEETS.USULAN, true).forEach(function (x) {
-        const is5Col = x.values.length >= 5;
-        const calon = is5Col ? x.values[3] : x.values[2];
-        const gabung = is5Col ? x.values[4] : x.values[3];
-        const targetCol = is5Col ? 5 : 4;
+        const len = x.values.length;
+        const is6Col = len >= 6;
+        const is5Col = len === 5;
+        const calon = (is6Col || is5Col) ? x.values[3] : x.values[2];
+        const gabung = is6Col ? x.values[5] : (is5Col ? x.values[4] : x.values[3]);
+        const targetCol = is6Col ? 6 : (is5Col ? 5 : 4);
         if (nameKey_(gabung || calon) === from) {
           sh.getRange(x.row, targetCol).setValue(to);
           n++;
@@ -466,7 +484,7 @@ function getRumah_() {
 
 function getKuota_(rumah) {
   const found = getRumah_().filter(function (r) { return r.rumah === rumah; })[0];
-  if (!found) throw new Error('Nomor rumah ' + rumah + ' tidak terdaftar. Periksa kembali (contoh: A1).');
+  if (!found) throw new Error('Nomor rumah ' + rumah + ' tidak terdaftar. Periksa kembali (contoh: A1, B12B).');
   return found.kuota;
 }
 
@@ -490,7 +508,7 @@ function safe_(s) {
 
 function normRumah_(s, silent) {
   const v = String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (!silent && !/^[A-Z]{1,3}[0-9]{1,4}$/.test(v)) throw new Error('Format nomor rumah tidak valid (contoh: A1).');
+  if (!silent && !/^(?:[A-Z]{1,4}[0-9]{1,4}|[0-9]{1,4})[A-Z]{0,2}$/.test(v)) throw new Error('Format nomor rumah tidak valid (contoh: A1, B12B).');
   return v;
 }
 
