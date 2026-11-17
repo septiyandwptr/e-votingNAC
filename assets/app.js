@@ -226,49 +226,71 @@
     const badgeText = isClosed ? "🛡️ Rekap Akhir Penjaringan Calon" : "🛡️ Data Sementara Penjaringan Calon";
     const ranking = data.ranking || [];
 
-    const top3 = ranking.slice(0, 3);
-    const others = ranking.slice(3);
+    // Tentukan calon yang lolos berdasarkan checklist (tick) admin atau deteksi seri
+    let selectedCandidates = [];
+    let otherCandidates = [];
 
-    const top3Html = top3.length ? `
-      <div class="rp-top3-grid">
-        ${top3.map((c, i) => {
+    if (meta && Array.isArray(meta.selectedNames) && meta.selectedNames.length > 0) {
+      selectedCandidates = ranking.filter((c) => meta.selectedNames.includes(c.nama));
+      const selSet = new Set(selectedCandidates.map((c) => c.nama));
+      otherCandidates = ranking.filter((c) => !selSet.has(c.nama));
+    } else {
+      // Fallback: minimal 3, jika peringkat 4 seri dengan peringkat 3 maka ikut masuk
+      const cutoffVotes = ranking.length >= 3 ? ranking[2].jumlah : 0;
+      selectedCandidates = ranking.filter((c, idx) => idx < 3 || (c.jumlah > 0 && c.jumlah === cutoffVotes));
+      const selSet = new Set(selectedCandidates.map((c) => c.nama));
+      otherCandidates = ranking.filter((c) => !selSet.has(c.nama));
+    }
+
+    const nSelected = selectedCandidates.length;
+    const gridCols = Math.min(Math.max(nSelected, 1), 4);
+
+    const selectedCardsHtml = selectedCandidates.length ? `
+      <div class="rp-top3-grid" style="grid-template-columns: repeat(${gridCols}, 1fr)">
+        ${selectedCandidates.map((c, i) => {
           const pct = totalUsulan ? ((c.jumlah / totalUsulan) * 100).toFixed(1).replace(".", ",") : "0";
           return `
             <div class="rp-top3-card">
               <div>
                 <span class="rp-top3-num">0${i + 1}</span>
-                <span class="rp-top3-name">${App.esc(App.cleanName(c.nama))}</span>
+                <span class="rp-top3-name">${App.esc(c.nama)}</span>
               </div>
               <div class="rp-top3-count">— ${c.jumlah} usulan (${pct}%)</div>
-              <div class="rp-top3-badge">${isClosed ? "✓ Lolos E-Voting" : "Posisi 3 Teratas"}</div>
+              <div class="rp-top3-badge">${isClosed ? "✓ Lolos E-Voting" : "Calon Terpilih"}</div>
             </div>
           `;
         }).join("")}
       </div>
     ` : `<div class="empty">Belum ada usulan masuk.</div>`;
 
-    const othersHtml = others.length ? `
+    const othersHtml = otherCandidates.length ? `
       <div class="rp-full-list">
-        ${others.map((c, i) => {
+        ${otherCandidates.map((c) => {
+          const origIdx = ranking.findIndex((r) => r.nama === c.nama);
+          const rankNo = origIdx >= 0 ? origIdx + 1 : "-";
           const pct = totalUsulan ? ((c.jumlah / totalUsulan) * 100).toFixed(1).replace(".", ",") : "0";
           return `
             <div class="rp-list-row">
               <div class="left">
-                <span class="rank">${i + 4}.</span>
-                <span class="name">${App.esc(App.cleanName(c.nama))}</span>
+                <span class="rank">${rankNo}.</span>
+                <span class="name">${App.esc(c.nama)}</span>
               </div>
               <div class="val">— ${c.jumlah} usulan (${pct}%)</div>
             </div>
           `;
         }).join("")}
       </div>
-    ` : (ranking.length <= 3 ? `
+    ` : (ranking.length <= selectedCandidates.length ? `
       <div class="rp-full-list">
         <div class="rp-list-row" style="color:var(--muted);font-style:italic">
-          ${ranking.length ? "Semua calon yang diusulkan telah terangkum di atas (tidak ada usulan nama lain)." : "Belum ada nama usulan yang masuk."}
+          ${ranking.length ? "Semua nama yang diusulkan warga telah masuk ke daftar calon di atas." : "Belum ada nama usulan yang masuk."}
         </div>
       </div>
     ` : '');
+
+    const sectionTitle = isClosed
+      ? `Calon yang Ditetapkan Lolos ke Tahap E-Voting (${nSelected} Calon)`
+      : `Daftar Calon Lolos ke Tahap E-Voting (${nSelected} Calon)`;
 
     return `
       <div class="rp-header">
@@ -294,16 +316,16 @@
         </div>
       </div>
 
-      <div class="rp-section-title">${isClosed ? "Top 3 Calon Lolos ke Tahap E-Voting" : "3 Besar Calon Unggulan Sementara"}</div>
-      ${top3Html}
+      <div class="rp-section-title">${sectionTitle}</div>
+      ${selectedCardsHtml}
 
-      <div class="rp-section-title">Daftar Lengkap Seluruh Nama Usulan Warga</div>
+      <div class="rp-section-title">Daftar Lengkap Seluruh Nama Usulan Warga Lainnya</div>
       ${othersHtml}
 
       <div class="rp-notice-box">
         <span style="font-size:18px">ℹ️</span>
         <div>
-          Seluruh usulan warga tercatat secara transparan. ${isClosed ? "Berdasarkan kesepakatan panitia, 3 nama teratas melaju ke Tahap E-Voting." : "Data ini diperbarui secara berkala selama periode pengajuan."} Data pengusul dan nomor rumah tetap dirahasiakan demi kenyamanan bersama.
+          Seluruh usulan warga tercatat secara transparan. ${isClosed ? `Berdasarkan penetapan panitia, ${nSelected} nama di atas resmi melaju ke Tahap E-Voting.` : `Calon di atas merupakan ${nSelected} nama yang dicentang/terpilih untuk melaju ke Tahap E-Voting.`} Data pengusul dan nomor rumah pemilih tetap dirahasiakan demi kenyamanan bersama.
           <div style="font-weight:700;margin-top:6px;color:#065f46">Panitia Pemilihan RT 06 / RW 10 Perumahan Nuansa Alam Cilebut</div>
         </div>
       </div>
@@ -329,7 +351,7 @@
           <div class="rp-winner-trophy">${isClosed ? "🏆" : "🥇"}</div>
           <div>
             <div class="rp-winner-label">${winLabel}</div>
-            <div class="rp-winner-name">${App.esc(App.cleanName(winner.nama))} <span class="rp-winner-meta">(${winner.suara} Suara / ${winPct}%)</span></div>
+            <div class="rp-winner-name">${App.esc(winner.nama)} <span class="rp-winner-meta">(${winner.suara} Suara / ${winPct}%)</span></div>
           </div>
         </div>
       `;
@@ -346,7 +368,7 @@
               ${App.avatar(c, i, "avatar sm")}
               <div>
                 <span style="color:#0f8a5f;font-weight:800;font-size:14px;margin-right:4px">${App.esc(c.nomor)}</span>
-                <span class="rp-vote-name">${App.esc(App.cleanName(c.nama))}</span>
+                <span class="rp-vote-name">${App.esc(c.nama)}</span>
               </div>
             </div>
             <div class="rp-vote-val">

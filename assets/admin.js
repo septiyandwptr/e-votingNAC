@@ -255,6 +255,14 @@
       rankTbody.innerHTML = `<tr><td colspan="4" class="empty">Belum ada usulan masuk.</td></tr>`;
       $("setCalonBtn").disabled = true;
     } else {
+      // Hitung default yang dicentang: minimal 3, jika peringkat 4 seri dengan peringkat 3 maka otomatis ikut dicentang
+      const cutoffVotes = data.ranking.length >= 3 ? data.ranking[2].jumlah : 0;
+      const shouldCheck = (idx) => {
+        if (idx < 3) return true;
+        if (data.ranking[idx].jumlah > 0 && data.ranking[idx].jumlah === cutoffVotes) return true;
+        return false;
+      };
+
       rankTbody.innerHTML = data.ranking.map((item, idx) => `
         <tr>
           <td>${idx + 1}</td>
@@ -262,7 +270,7 @@
           <td>${item.jumlah} usulan</td>
           <td>
             <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-right:12px">
-              <input type="checkbox" class="calon-pick" data-nama="${App.esc(item.nama)}" ${idx < 3 ? "checked" : ""}>
+              <input type="checkbox" class="calon-pick" data-nama="${App.esc(item.nama)}" ${shouldCheck(idx) ? "checked" : ""}>
               Pilih Calon
             </label>
             <button class="link-btn merge-btn" data-from="${App.esc(item.nama)}">+ Gabungkan</button>
@@ -390,9 +398,23 @@
       if (!cachedDash) {
         try { cachedDash = await adminApi("adminDashboard"); } catch (_) {}
       }
+
+      // Ambil calon yang dicentang (tick) di tabel dashboard jika elemennya ada
+      let selectedNames = Array.from(document.querySelectorAll(".calon-pick:checked")).map((cb) => cb.dataset.nama);
+
+      // Jika belum buka tab usulan (mis. klik langsung dari Dashboard), ambil dari calon tersimpan di Part 2
+      if (!selectedNames.length) {
+        if (!cachedCalon || !cachedCalon.length) {
+          try { cachedCalon = await adminApi("adminGetCalon"); } catch (_) {}
+        }
+        if (cachedCalon && cachedCalon.length) {
+          selectedNames = cachedCalon.map((c) => c.nama);
+        }
+      }
+
       const totalRumah = (cachedDash && cachedDash.totalRumah) ? cachedDash.totalRumah : (cachedUsulan.rumahUsul || 120);
       const isClosed = cachedDash && cachedDash.part1 ? !cachedDash.part1.open : false;
-      const html = App.renderUsulanReport(cachedUsulan, { totalRumah, isClosed });
+      const html = App.renderUsulanReport(cachedUsulan, { totalRumah, isClosed, selectedNames });
       App.showReportModal("Rekap Hasil Penjaringan Calon Ketua RT (Part 1)", html, "rekap-usulan-calon-rt06.pdf");
     } catch (e) {
       App.toast("Gagal menyiapkan rekap usulan: " + e.message, "error");

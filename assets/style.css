@@ -699,7 +699,7 @@ tr.batal td.keep { text-decoration: none; }
     grid-template-columns: 1fr;
   }
   .rp-top3-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
   .report-sheet {
     padding: 24px 16px 30px;
