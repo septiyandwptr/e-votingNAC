@@ -226,18 +226,23 @@
     const badgeText = isClosed ? "🛡️ Rekap Akhir Penjaringan Calon" : "🛡️ Data Sementara Penjaringan Calon";
     const ranking = data.ranking || [];
 
+    // Daftar nama yang dikecualikan (tidak sah)
+    const excludedNames = (meta && Array.isArray(meta.excludedNames)) ? meta.excludedNames : [];
+    const excludedSet = new Set(excludedNames);
+
     // Tentukan calon yang lolos berdasarkan checklist (tick) admin atau deteksi seri
     let selectedCandidates = [];
     let otherCandidates = [];
 
     if (meta && Array.isArray(meta.selectedNames) && meta.selectedNames.length > 0) {
-      selectedCandidates = ranking.filter((c) => meta.selectedNames.includes(c.nama));
+      selectedCandidates = ranking.filter((c) => meta.selectedNames.includes(c.nama) && !excludedSet.has(c.nama));
       const selSet = new Set(selectedCandidates.map((c) => c.nama));
       otherCandidates = ranking.filter((c) => !selSet.has(c.nama));
     } else {
-      // Fallback: minimal 3, jika peringkat 4 seri dengan peringkat 3 maka ikut masuk
-      const cutoffVotes = ranking.length >= 3 ? ranking[2].jumlah : 0;
-      selectedCandidates = ranking.filter((c, idx) => idx < 3 || (c.jumlah > 0 && c.jumlah === cutoffVotes));
+      // Fallback: minimal 3 dari calon yang tidak dikecualikan, jika peringkat 4 seri maka ikut masuk
+      const eligible = ranking.filter((c) => !excludedSet.has(c.nama));
+      const cutoffVotes = eligible.length >= 3 ? eligible[2].jumlah : 0;
+      selectedCandidates = eligible.filter((c, idx) => idx < 3 || (c.jumlah > 0 && c.jumlah === cutoffVotes));
       const selSet = new Set(selectedCandidates.map((c) => c.nama));
       otherCandidates = ranking.filter((c) => !selSet.has(c.nama));
     }
@@ -269,13 +274,21 @@
           const origIdx = ranking.findIndex((r) => r.nama === c.nama);
           const rankNo = origIdx >= 0 ? origIdx + 1 : "-";
           const pct = totalUsulan ? ((c.jumlah / totalUsulan) * 100).toFixed(1).replace(".", ",") : "0";
+          const isExcluded = excludedSet.has(c.nama);
           return `
-            <div class="rp-list-row">
-              <div class="left">
+            <div class="rp-list-row ${isExcluded ? 'rp-row-excluded' : ''}">
+              <div class="left" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
                 <span class="rank">${rankNo}.</span>
-                <span class="name">${App.esc(c.nama)}</span>
+                ${isExcluded ? `
+                  <span class="name" style="text-decoration:line-through;color:#6b7280">${App.esc(c.nama)}</span>
+                  <span style="color:#dc2626;font-size:12px;font-weight:700;font-style:italic">
+                    (tidak sah, masuk dalam nama pengecualian)
+                  </span>
+                ` : `
+                  <span class="name">${App.esc(c.nama)}</span>
+                `}
               </div>
-              <div class="val">— ${c.jumlah} usulan (${pct}%)</div>
+              <div class="val" style="${isExcluded ? 'color:#9ca3af' : ''}">— ${c.jumlah} usulan (${pct}%)</div>
             </div>
           `;
         }).join("")}
@@ -325,7 +338,9 @@
       <div class="rp-notice-box">
         <span style="font-size:18px">ℹ️</span>
         <div>
-          Seluruh usulan warga tercatat secara transparan. ${isClosed ? `Berdasarkan penetapan panitia, ${nSelected} nama di atas resmi melaju ke Tahap E-Voting.` : `Calon di atas merupakan ${nSelected} nama yang dicentang/terpilih untuk melaju ke Tahap E-Voting.`} Data pengusul dan nomor rumah pemilih tetap dirahasiakan demi kenyamanan bersama.
+          Seluruh usulan warga tercatat secara transparan. ${isClosed ? `Berdasarkan penetapan panitia, ${nSelected} nama di atas resmi melaju ke Tahap E-Voting.` : `Calon di atas merupakan ${nSelected} nama yang dicentang/terpilih untuk melaju ke Tahap E-Voting.`} 
+          ${excludedSet.size > 0 ? `<div style="margin-top:6px;color:#b91c1c;font-weight:600">* Catatan: Nama yang dicoret bertanda <i>(tidak sah, masuk dalam nama pengecualian)</i> tidak dapat dicalonkan sebagai Ketua RT sesuai tata tertib/ketentuan pemilihan.</div>` : ''}
+          <div style="margin-top:6px">Data pengusul dan nomor rumah pemilih tetap dirahasiakan demi kenyamanan bersama.</div>
           <div style="font-weight:700;margin-top:6px;color:#065f46">Panitia Pemilihan RT 06 / RW 10 Perumahan Nuansa Alam Cilebut</div>
         </div>
       </div>

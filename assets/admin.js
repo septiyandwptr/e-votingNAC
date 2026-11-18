@@ -12,6 +12,20 @@
   let cachedRumah = [];
   let modalResolver = null;
 
+  // Helper data calon yang dikecualikan (tidak sah)
+  function getExcludedNames() {
+    try {
+      const stored = App.store.get("excluded_candidates");
+      return stored ? JSON.parse(stored) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function setExcludedNames(list) {
+    App.store.set("excluded_candidates", JSON.stringify(list));
+  }
+
   // Helper panggil API dengan password admin
   async function adminApi(action, data) {
     return App.api(action, Object.assign({}, data || {}, { password: adminPw }));
@@ -249,36 +263,71 @@
     $("uRumah").textContent = data.rumahUsul;
     $("uUnik").textContent = data.ranking.length;
 
+    const excludedSet = new Set(getExcludedNames());
+
     // Tabel ranking
     const rankTbody = $("uRank");
     if (!data.ranking.length) {
       rankTbody.innerHTML = `<tr><td colspan="4" class="empty">Belum ada usulan masuk.</td></tr>`;
       $("setCalonBtn").disabled = true;
     } else {
-      // Hitung default yang dicentang: minimal 3, jika peringkat 4 seri dengan peringkat 3 maka otomatis ikut dicentang
-      const cutoffVotes = data.ranking.length >= 3 ? data.ranking[2].jumlah : 0;
-      const shouldCheck = (idx) => {
-        if (idx < 3) return true;
-        if (data.ranking[idx].jumlah > 0 && data.ranking[idx].jumlah === cutoffVotes) return true;
+      // Hitung default yang dicentang: minimal 3 dari calon yang TIDAK dikecualikan
+      const eligible = data.ranking.filter((r) => !excludedSet.has(r.nama));
+      const cutoffVotes = eligible.length >= 3 ? eligible[2].jumlah : 0;
+      const shouldCheck = (item) => {
+        if (excludedSet.has(item.nama)) return false;
+        const eIdx = eligible.findIndex((x) => x.nama === item.nama);
+        if (eIdx >= 0 && eIdx < 3) return true;
+        if (item.jumlah > 0 && item.jumlah === cutoffVotes) return true;
         return false;
       };
 
-      rankTbody.innerHTML = data.ranking.map((item, idx) => `
-        <tr>
-          <td>${idx + 1}</td>
-          <td><b>${App.esc(item.nama)}</b></td>
-          <td>${item.jumlah} usulan</td>
-          <td>
-            <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-right:12px">
-              <input type="checkbox" class="calon-pick" data-nama="${App.esc(item.nama)}" ${shouldCheck(idx) ? "checked" : ""}>
-              Pilih Calon
-            </label>
-            <button class="link-btn merge-btn" data-from="${App.esc(item.nama)}">+ Gabungkan</button>
-          </td>
-        </tr>
-      `).join("");
+      rankTbody.innerHTML = data.ranking.map((item, idx) => {
+        const isExcluded = excludedSet.has(item.nama);
+        const isChecked = shouldCheck(item);
+        return `
+          <tr class="${isExcluded ? 'row-excluded' : ''}">
+            <td>${idx + 1}</td>
+            <td>
+              <b class="${isExcluded ? 'text-excluded' : ''}">${App.esc(item.nama)}</b>
+              ${isExcluded ? '<span class="badge batal" style="margin-left:8px;font-size:11px">Tidak Sah (Pengecualian)</span>' : ''}
+            </td>
+            <td>${item.jumlah} usulan</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+                  <input type="checkbox" class="calon-pick" data-nama="${App.esc(item.nama)}" ${isChecked ? "checked" : ""} ${isExcluded ? "disabled" : ""}>
+                  Pilih Calon
+                </label>
+                <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:#dc2626;font-size:13px">
+                  <input type="checkbox" class="calon-exclude" data-nama="${App.esc(item.nama)}" ${isExcluded ? "checked" : ""}>
+                  Tidak Sah (Pengecualian)
+                </label>
+                <button class="link-btn merge-btn" data-from="${App.esc(item.nama)}">+ Gabungkan</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
       $("setCalonBtn").disabled = false;
     }
+
+    // Pasang handler checkbox pengecualian (tidak sah)
+    rankTbody.querySelectorAll(".calon-exclude").forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const name = cb.dataset.nama;
+        const current = new Set(getExcludedNames());
+        if (cb.checked) {
+          current.add(name);
+          App.toast(`"${name}" ditandai sebagai nama pengecualian (tidak sah).`, "info");
+        } else {
+          current.delete(name);
+          App.toast(`"${name}" dihapus dari status pengecualian.`, "info");
+        }
+        setExcludedNames(Array.from(current));
+        loadUsulan();
+      });
+    });
 
     // Pasang handler gabungkan
     rankTbody.querySelectorAll(".merge-btn").forEach((btn) => {
@@ -402,19 +451,25 @@
       // Ambil calon yang dicentang (tick) di tabel dashboard jika elemennya ada
       let selectedNames = Array.from(document.querySelectorAll(".calon-pick:checked")).map((cb) => cb.dataset.nama);
 
+      // Ambil daftar nama pengecualian (tidak sah)
+      const excludedNames = getExcludedNames();
+
+      // Pastikan calon yang dikecualikan tidak masuk ke daftar calon lolos
+      selectedNames = selectedNames.filter((n) => !excludedNames.includes(n));
+
       // Jika belum buka tab usulan (mis. klik langsung dari Dashboard), ambil dari calon tersimpan di Part 2
       if (!selectedNames.length) {
         if (!cachedCalon || !cachedCalon.length) {
           try { cachedCalon = await adminApi("adminGetCalon"); } catch (_) {}
         }
         if (cachedCalon && cachedCalon.length) {
-          selectedNames = cachedCalon.map((c) => c.nama);
+          selectedNames = cachedCalon.map((c) => c.nama).filter((n) => !excludedNames.includes(n));
         }
       }
 
       const totalRumah = (cachedDash && cachedDash.totalRumah) ? cachedDash.totalRumah : (cachedUsulan.rumahUsul || 120);
       const isClosed = cachedDash && cachedDash.part1 ? !cachedDash.part1.open : false;
-      const html = App.renderUsulanReport(cachedUsulan, { totalRumah, isClosed, selectedNames });
+      const html = App.renderUsulanReport(cachedUsulan, { totalRumah, isClosed, selectedNames, excludedNames });
       App.showReportModal("Rekap Hasil Penjaringan Calon Ketua RT (Part 1)", html, "rekap-usulan-calon-rt06.pdf");
     } catch (e) {
       App.toast("Gagal menyiapkan rekap usulan: " + e.message, "error");

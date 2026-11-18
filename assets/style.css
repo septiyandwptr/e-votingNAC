@@ -694,6 +694,18 @@ tr.batal td.keep { text-decoration: none; }
   margin-top: 14px;
 }
 
+/* Pengecualian Calon (Tidak Sah) */
+.text-excluded {
+  text-decoration: line-through;
+  color: #9ca3af !important;
+}
+.row-excluded {
+  background: #fff5f5 !important;
+}
+.rp-row-excluded {
+  background: #fff7f7 !important;
+}
+
 @media (max-width: 640px) {
   .rp-metrics {
     grid-template-columns: 1fr;
