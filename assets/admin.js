@@ -158,11 +158,11 @@
       const payload = {};
       payload[prefix + "_buka"] = newState ? "TRUE" : "FALSE";
 
-      // Jika membuka Part 2, tanyakan/otomatis sesuaikan tampilan beranda (Part 2 + Live Count)
+      // Jika membuka Part 2, sesuaikan tampilan beranda (Hanya tampilkan Part 2, Live Count internal panitia)
       if (prefix === "part2" && newState) {
         payload.tampil_part1 = "FALSE";
         payload.tampil_part2 = "TRUE";
-        payload.tampil_livecount = "TRUE";
+        payload.tampil_livecount = "FALSE";
       } else if (prefix === "part1" && newState) {
         payload.tampil_part1 = "TRUE";
       }
@@ -231,8 +231,8 @@
     $("btnPresetP2").addEventListener("click", () => {
       $("mPart1").checked = false;
       $("mPart2").checked = true;
-      $("mLive").checked  = true;
-      App.toast("Preset terpilih: Part 2 + Live Count. Klik 'Simpan Tampilan Beranda' untuk menerapkan.");
+      $("mLive").checked  = false;
+      App.toast("Preset terpilih: Part 2 (E-Voting). Live Count bersifat internal panitia. Klik 'Simpan Tampilan Beranda' untuk menerapkan.");
     });
   }
 
@@ -555,7 +555,8 @@
       const nomor = r.querySelector(".c-no").value.trim();
       const nama = r.querySelector(".c-nama").value.trim();
       const tagline = r.querySelector(".c-tag") ? r.querySelector(".c-tag").value.trim() : "";
-      const foto_url = r.querySelector(".c-foto") ? r.querySelector(".c-foto").value.trim() : "";
+      const rawFoto = r.querySelector(".c-foto") ? r.querySelector(".c-foto").value.trim() : "";
+      const foto_url = App.fixFotoUrl ? App.fixFotoUrl(rawFoto) : rawFoto;
       if (!nama) {
         App.toast("Nama calon tidak boleh kosong.", "error");
         return;

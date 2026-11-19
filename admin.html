@@ -81,7 +81,7 @@
 
           <div class="card" style="margin-top:16px">
             <h3>Tampilan Menu di Halaman Utama (index.html)</h3>
-            <p class="help" style="margin-top:-6px">Pilih menu mana saja yang tampil untuk warga saat membuka halaman utama. <b>Sistem Anti-Bandwagon:</b> Saat tahap voting dibuka, menu Live Count otomatis disembunyikan bagi warga yang belum memilih agar tidak mempengaruhi pilihan warga lain, dan otomatis muncul setelah warga selesai memberikan suara (atau saat pemilihan ditutup).</p>
+            <p class="help" style="margin-top:-6px">Pilih menu mana saja yang tampil untuk warga saat membuka halaman utama. <b>Kebijakan Panitia:</b> Menu Live Count bersifat internal panitia dan disembunyikan dari pemilih umum guna menjaga kerahasiaan & integritas pemilihan.</p>
             <div style="display:grid;gap:12px;margin:16px 0;background:#f9fafb;padding:14px;border-radius:12px;border:1px solid var(--border)">
               <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
                 <input type="checkbox" id="mPart1" style="width:18px;height:18px;cursor:pointer">
@@ -99,7 +99,7 @@
             <div class="row-actions">
               <button class="btn sm" id="btnSaveMenu">Simpan Tampilan Beranda</button>
               <button class="btn outline sm" id="btnPresetP1">Set Standar Part 1 (Hanya Usulan)</button>
-              <button class="btn outline sm" id="btnPresetP2">Set Standar Part 2 (Voting + Live Count)</button>
+              <button class="btn outline sm" id="btnPresetP2">Set Standar Part 2 (Hanya E-Voting)</button>
             </div>
           </div>
         </section>
@@ -138,7 +138,7 @@
         <section data-view="calon" hidden>
           <div class="card">
             <h3>Daftar Calon Part 2</h3>
-            <p class="help" style="margin-top:-6px">Foto opsional: isi dengan link gambar (mis. <code>img/calon1.jpg</code> jika file diunggah ke folder <code>img</code> website). Jika kosong, akan tampil inisial nama.</p>
+            <p class="help" style="margin-top:-6px">Foto opsional: bisa paste langsung <b>Link Share Google Drive</b> (pastikan akses diset <i>"Siapa saja yang memiliki link / Anyone with the link"</i>) atau link gambar lainnya. Jika kosong, akan otomatis menampilkan inisial nama berwarna.</p>
             <div class="calon-edit head"><span>No</span><span>Nama</span><span class="hide-sm">Tagline</span><span class="hide-sm">Link Foto</span><span></span></div>
             <div id="cList"></div>
             <div class="row-actions">
@@ -253,7 +253,7 @@
 
   <script src="assets/html2pdf.bundle.min.js"></script>
   <script src="assets/config.js"></script>
-  <script src="assets/app.js"></script>
-  <script src="assets/admin.js"></script>
+  <script src="assets/app.js?v=20261119"></script>
+  <script src="assets/admin.js?v=20261119"></script>
 </body>
 </html>

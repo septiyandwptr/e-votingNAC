@@ -120,27 +120,13 @@
         const showP2 = t.part2 !== undefined ? !!t.part2 : false;
         const liveEnabled = !!t.livecount;
 
-        // Logika Live Count:
-        // Default disembunyikan sebelum memilih untuk mencegah bandwagon effect (warga ikut-ikutan suara terbanyak).
-        // - Saat voting dibuka: HANYA muncul untuk warga yang SUDAH VOTE di perangkat ini.
-        // - Saat voting ditutup: Muncul untuk SEMUA warga agar dapat melihat hasil akhir pemilihan.
-        let showLive = false;
-        if (liveEnabled) {
-          if (s.part2 && s.part2.open) {
-            showLive = hasVoted;
-            if ($("stLive")) {
-              $("stLive").textContent = "LIVE";
-              $("stLive").className = "chip red";
-            }
-            if ($("descLive")) $("descLive").textContent = "Perolehan suara sementara";
-          } else {
-            showLive = true;
-            if ($("stLive")) {
-              $("stLive").textContent = "SELESAI";
-              $("stLive").className = "chip gray";
-            }
-            if ($("descLive")) $("descLive").textContent = "Hasil akhir perolehan suara";
-          }
+        // Berdasarkan keputusan panitia: Live Count HANYA untuk Panitia (pemilih umum tidak bisa melihat)
+        const isAdmin = !!sessionStorage.getItem("rt06_admin_pw");
+        const showLive = isAdmin && liveEnabled;
+        if (showLive && $("stLive")) {
+          $("stLive").textContent = "PANITIA";
+          $("stLive").className = "chip green";
+          if ($("descLive")) $("descLive").textContent = "Perolehan suara (Akses Internal Panitia)";
         }
 
         $("cardPart1").hidden = !showP1;
