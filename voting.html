@@ -43,7 +43,10 @@
         <div class="check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
         <h2>Terima kasih!</h2>
         <p id="doneText">Suara Anda sudah tercatat. Perangkat ini hanya dapat digunakan untuk memilih 1 kali.</p>
-        <a class="btn" href="livecount.html">Lihat Live Count →</a>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:16px">
+          <a class="btn" href="livecount.html">📊 Lihat Live Count Sekarang →</a>
+          <a class="btn outline" href="index.html" style="font-size:14px">← Kembali ke Halaman Utama</a>
+        </div>
       </div>
     </section>
 
@@ -59,7 +62,7 @@
         <div class="cand-grid" id="cands" role="radiogroup" aria-label="Daftar calon"></div>
 
         <button class="btn block" id="submit" type="submit">Kirim Suara</button>
-        <p style="text-align:center;margin:14px 0 0"><a href="livecount.html">Lihat Live Count →</a></p>
+        <p style="text-align:center;margin:14px 0 0"><a href="index.html" style="color:var(--muted);font-size:13px">← Kembali ke Halaman Utama</a></p>
       </form>
     </section>
 

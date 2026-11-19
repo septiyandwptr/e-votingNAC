@@ -22,34 +22,51 @@
       </div>
     </header>
 
-    <section class="stats">
-      <div class="card stat"><div class="label">Total Suara Masuk</div><div class="value" id="total">–</div></div>
-      <div class="card stat"><div class="label">Total Hak Suara</div><div class="value" id="hak">–</div></div>
-      <div class="card stat">
-        <div class="label">Partisipasi</div><div class="value" id="pct">–</div>
-        <div class="progress"><div id="pctBar" style="width:0"></div></div>
+    <!-- Card jika belum memilih dan voting sedang berlangsung -->
+    <section class="card" id="lockedCard" hidden style="text-align:center;padding:40px 20px;max-width:560px;margin:24px auto;">
+      <div style="width:68px;height:68px;border-radius:50%;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px">
+        🔒
+      </div>
+      <h2 style="margin:0 0 10px;font-size:22px">Live Count Masih Terkunci</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 24px">
+        Untuk menjaga kerahasiaan dan objektivitas pilihan warga (menghindari <i>bandwagon effect</i> / pengaruh perolehan sementara), perolehan suara hanya dapat diakses setelah Anda memberikan suara di halaman E-Voting.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a class="btn" href="voting.html">🗳️ Berikan Suara di E-Voting Sekarang</a>
+        <a class="btn outline" href="index.html">← Kembali ke Beranda</a>
       </div>
     </section>
 
-    <section class="lc-main">
-      <div class="card">
-        <h3>Perolehan Suara Calon Ketua RT</h3>
-        <div class="lc-results">
-          <div id="bars"><div class="empty"><span class="spinner dark"></span> Memuat…</div></div>
-          <div class="donut-wrap">
-            <div class="donut" id="donut" style="background:#e5e7eb"></div>
-            <div class="legend" id="legend"></div>
+    <div id="lcContent">
+      <section class="stats">
+        <div class="card stat"><div class="label">Total Suara Masuk</div><div class="value" id="total">–</div></div>
+        <div class="card stat"><div class="label">Total Hak Suara</div><div class="value" id="hak">–</div></div>
+        <div class="card stat">
+          <div class="label">Partisipasi</div><div class="value" id="pct">–</div>
+          <div class="progress"><div id="pctBar" style="width:0"></div></div>
+        </div>
+      </section>
+
+      <section class="lc-main">
+        <div class="card">
+          <h3>Perolehan Suara Calon Ketua RT</h3>
+          <div class="lc-results">
+            <div id="bars"><div class="empty"><span class="spinner dark"></span> Memuat…</div></div>
+            <div class="donut-wrap">
+              <div class="donut" id="donut" style="background:#e5e7eb"></div>
+              <div class="legend" id="legend"></div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="card">
-        <h3>Aktivitas Terbaru</h3>
-        <div class="activity" id="activity"><div>Belum ada suara masuk</div></div>
-      </div>
-    </section>
+        <div class="card">
+          <h3>Aktivitas Terbaru</h3>
+          <div class="activity" id="activity"><div>Belum ada suara masuk</div></div>
+        </div>
+      </section>
 
-    <p class="note">Hasil resmi diumumkan panitia setelah voting ditutup</p>
-    <p class="note" style="margin-top:6px"><a href="index.html">← Kembali ke beranda</a></p>
+      <p class="note">Hasil resmi diumumkan panitia setelah voting ditutup</p>
+      <p class="note" style="margin-top:6px"><a href="index.html">← Kembali ke beranda</a></p>
+    </div>
   </main>
 
   <script src="assets/html2pdf.bundle.min.js"></script>
@@ -61,8 +78,32 @@
       let lastRecent = "";
       let cachedData = null;
 
+      function isLocked(d) {
+        const isAdmin = !!sessionStorage.getItem("rt06_admin_pw");
+        const hasVoted = App.hasVoted(d.resetVersion);
+        const isOpen = d.part2 && d.part2.open;
+        // Kunci HANYA jika voting sedang dibuka, DAN belum memilih di perangkat ini, DAN bukan admin
+        return isOpen && !hasVoted && !isAdmin;
+      }
+
       function render(d) {
         cachedData = d;
+
+        if (isLocked(d)) {
+          $("lockedCard").hidden = false;
+          $("lcContent").hidden = true;
+          if ($("lcExportPdf")) $("lcExportPdf").hidden = true;
+          if ($("liveChip")) $("liveChip").hidden = true;
+          if ($("updated") && $("updated").parentElement) $("updated").parentElement.hidden = true;
+          return;
+        }
+
+        $("lockedCard").hidden = true;
+        $("lcContent").hidden = false;
+        if ($("lcExportPdf")) $("lcExportPdf").hidden = false;
+        if ($("liveChip")) $("liveChip").hidden = false;
+        if ($("updated") && $("updated").parentElement) $("updated").parentElement.hidden = false;
+
         $("total").textContent = d.total;
         $("hak").textContent = d.hakSuara;
         const pct = d.hakSuara ? (d.total / d.hakSuara) * 100 : 0;

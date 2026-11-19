@@ -37,17 +37,17 @@
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></div>
       <div>
         <h3>Tahap 3 Part 2</h3>
-        <p>E-Voting Ketua RT</p>
+        <p id="descPart2">E-Voting Ketua RT</p>
       </div>
       <span class="chip gray" id="st2">Memuat…</span>
     </a>
 
-    <!-- Menu Live Count -->
+    <!-- Menu Live Count (Hanya muncul jika sudah vote atau setelah voting ditutup) -->
     <a class="card menu-card" href="livecount.html" id="cardLive" hidden>
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v2M11 11v6M15 7v10M19 13v4"/></svg></div>
       <div>
         <h3>Live Count</h3>
-        <p>Perolehan suara sementara</p>
+        <p id="descLive">Perolehan suara sementara</p>
       </div>
       <span class="chip red" id="stLive">LIVE</span>
     </a>
@@ -80,14 +80,48 @@
         const s = await App.api("status");
         $("loadingMenu").hidden = true;
 
+        const hasVoted = App.hasVoted(s.resetVersion);
+
         setChip("st1", s.part1 && s.part1.open);
-        setChip("st2", s.part2 && s.part2.open);
+
+        // Status untuk Part 2
+        if (hasVoted) {
+          $("st2").textContent = "Sudah Memilih ✓";
+          $("st2").className = "chip green";
+          if ($("descPart2")) $("descPart2").textContent = "Suara Anda sudah tercatat";
+        } else {
+          setChip("st2", s.part2 && s.part2.open);
+          if ($("descPart2")) $("descPart2").textContent = "E-Voting Ketua RT";
+        }
 
         // Baca visibilitas menu dari backend admin
         const t = s.tampilan || {};
         const showP1 = t.part1 !== undefined ? !!t.part1 : true;
         const showP2 = t.part2 !== undefined ? !!t.part2 : false;
-        const showLive = t.livecount !== undefined ? !!t.livecount : false;
+        const liveEnabled = !!t.livecount;
+
+        // Logika Live Count:
+        // Default disembunyikan sebelum memilih untuk mencegah bandwagon effect (warga ikut-ikutan suara terbanyak).
+        // - Saat voting dibuka: HANYA muncul untuk warga yang SUDAH VOTE di perangkat ini.
+        // - Saat voting ditutup: Muncul untuk SEMUA warga agar dapat melihat hasil akhir pemilihan.
+        let showLive = false;
+        if (liveEnabled) {
+          if (s.part2 && s.part2.open) {
+            showLive = hasVoted;
+            if ($("stLive")) {
+              $("stLive").textContent = "LIVE";
+              $("stLive").className = "chip red";
+            }
+            if ($("descLive")) $("descLive").textContent = "Perolehan suara sementara";
+          } else {
+            showLive = true;
+            if ($("stLive")) {
+              $("stLive").textContent = "SELESAI";
+              $("stLive").className = "chip gray";
+            }
+            if ($("descLive")) $("descLive").textContent = "Hasil akhir perolehan suara";
+          }
+        }
 
         $("cardPart1").hidden = !showP1;
         $("cardPart2").hidden = !showP2;

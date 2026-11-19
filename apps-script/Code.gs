@@ -162,6 +162,7 @@ const ACTIONS = {
       hakSuara: hakSuara,
       recent: recent,
       part2: phase_('part2'),
+      resetVersion: getSettings_().reset_version || '1',
       updatedAt: new Date().toISOString(),
     };
     cache.put(LIVE_CACHE_KEY, JSON.stringify(result), LIVE_CACHE_SECONDS);

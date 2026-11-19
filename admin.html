@@ -81,7 +81,7 @@
 
           <div class="card" style="margin-top:16px">
             <h3>Tampilan Menu di Halaman Utama (index.html)</h3>
-            <p class="help" style="margin-top:-6px">Pilih menu mana saja yang tampil untuk warga saat membuka halaman utama. Secara default untuk pengajuan hanya tampil Part 1, dan saat e-voting tampil Part 2 beserta Live Count.</p>
+            <p class="help" style="margin-top:-6px">Pilih menu mana saja yang tampil untuk warga saat membuka halaman utama. <b>Sistem Anti-Bandwagon:</b> Saat tahap voting dibuka, menu Live Count otomatis disembunyikan bagi warga yang belum memilih agar tidak mempengaruhi pilihan warga lain, dan otomatis muncul setelah warga selesai memberikan suara (atau saat pemilihan ditutup).</p>
             <div style="display:grid;gap:12px;margin:16px 0;background:#f9fafb;padding:14px;border-radius:12px;border:1px solid var(--border)">
               <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
                 <input type="checkbox" id="mPart1" style="width:18px;height:18px;cursor:pointer">
@@ -201,7 +201,7 @@
             </div>
 
             <h3 style="margin-top:24px">Tampilan Menu di Beranda (index.html)</h3>
-            <p class="help" style="margin-top:-6px">Pilih menu apa saja yang dapat dilihat oleh warga pada halaman utama.</p>
+            <p class="help" style="margin-top:-6px">Pilih menu apa saja yang dapat dilihat oleh warga pada halaman utama. Menu Live Count hanya akan muncul bagi warga yang sudah memberikan suara untuk menjaga kerahasiaan dan independensi pemilih.</p>
             <div style="display:grid;gap:10px;margin:12px 0;background:#f9fafb;padding:12px;border-radius:10px;border:1px solid var(--border)">
               <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
                 <input type="checkbox" id="cfgPart1" style="width:18px;height:18px">
