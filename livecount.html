@@ -71,7 +71,7 @@
 
   <script src="assets/html2pdf.bundle.min.js"></script>
   <script src="assets/config.js"></script>
-  <script src="assets/app.js"></script>
+  <script src="assets/app.js?v=20261119"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -80,7 +80,9 @@
 
       function isLocked(d) {
         const isAdmin = !!sessionStorage.getItem("rt06_admin_pw");
-        const hasVoted = App.hasVoted(d.resetVersion);
+        const hasVoted = (window.App && typeof window.App.hasVoted === "function")
+          ? window.App.hasVoted(d.resetVersion)
+          : (window.App && window.App.store && window.App.store.get("voted") === "1");
         const isOpen = d.part2 && d.part2.open;
         // Kunci HANYA jika voting sedang dibuka, DAN belum memilih di perangkat ini, DAN bukan admin
         return isOpen && !hasVoted && !isAdmin;

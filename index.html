@@ -65,7 +65,7 @@
   </main>
 
   <script src="assets/config.js"></script>
-  <script src="assets/app.js"></script>
+  <script src="assets/app.js?v=20261119"></script>
   <script>
     (async function () {
       const $ = (id) => document.getElementById(id);
@@ -76,11 +76,31 @@
         el.className = "chip " + (open ? "green" : "gray");
       };
 
+      // Helper aman: berjalan normal walau browser warga masih menyimpan cache app.js versi lama
+      const checkHasVoted = (resetVer) => {
+        if (window.App && typeof window.App.hasVoted === "function") {
+          return window.App.hasVoted(resetVer);
+        }
+        if (window.App && window.App.store) {
+          if (resetVer) {
+            const localVer = window.App.store.get("voted_version") || "1";
+            if (localVer !== String(resetVer)) {
+              window.App.store.remove("voted");
+              window.App.store.remove("voted_info");
+              window.App.store.remove("voted_version");
+              return false;
+            }
+          }
+          return window.App.store.get("voted") === "1";
+        }
+        return false;
+      };
+
       try {
         const s = await App.api("status");
         $("loadingMenu").hidden = true;
 
-        const hasVoted = App.hasVoted(s.resetVersion);
+        const hasVoted = checkHasVoted(s.resetVersion);
 
         setChip("st1", s.part1 && s.part1.open);
 

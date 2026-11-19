@@ -32,6 +32,20 @@
     remove: (k) => localStorage.removeItem(C.STORAGE_PREFIX + k),
   };
 
+  /** Cek apakah perangkat sudah pernah memilih di Part 2 (dan sesi reset masih valid) */
+  App.hasVoted = function (serverResetVersion) {
+    if (serverResetVersion) {
+      const localVersion = App.store.get("voted_version") || "1";
+      if (localVersion !== String(serverResetVersion)) {
+        App.store.remove("voted");
+        App.store.remove("voted_info");
+        App.store.remove("voted_version");
+        return false;
+      }
+    }
+    return App.store.get("voted") === "1";
+  };
+
   App.deviceId = function () {
     let id = App.store.get("device");
     if (!id) {
