@@ -77,10 +77,22 @@
   /** Nama tanpa akhiran nomor rumah, mis. "Jefri Nichol - Z1" atau "Budi - B12B" → "Budi" */
   App.cleanName = (name) => String(name || "").replace(/\s*-\s*[A-Za-z]{1,4}\d{1,4}[A-Za-z]{0,2}\s*$/, "");
 
+  /** Normalisasi URL foto, otomatis konversi link share Google Drive menjadi link gambar langsung */
+  App.fixFotoUrl = function (url) {
+    if (!url) return "";
+    url = String(url).trim();
+    const m = url.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=)|docs\.google\.com\/file\/d\/)([a-zA-Z0-9_-]+)/);
+    if (m && m[1]) {
+      return "https://lh3.googleusercontent.com/d/" + m[1];
+    }
+    return url;
+  };
+
   App.avatar = function (c, i, cls) {
     cls = cls || "avatar";
-    if (c.foto_url) {
-      return '<img class="' + cls + '" src="' + App.esc(c.foto_url) + '" alt="' + App.esc(c.nama) + '" loading="lazy">';
+    const foto = App.fixFotoUrl ? App.fixFotoUrl(c.foto_url) : c.foto_url;
+    if (foto) {
+      return '<img class="' + cls + '" src="' + App.esc(foto) + '" alt="' + App.esc(c.nama) + '" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display=\'none\';if(this.nextElementSibling)this.nextElementSibling.style.display=\'flex\'"><div class="' + cls + '" style="background:' + App.color(i) + ';display:none">' + App.esc(App.initials(c.nama)) + '</div>';
     }
     return '<div class="' + cls + '" style="background:' + App.color(i) + '">' + App.esc(App.initials(c.nama)) + "</div>";
   };

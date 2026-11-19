@@ -84,6 +84,22 @@
 
       const isAdminLoggedIn = () => !!sessionStorage.getItem("rt06_admin_pw");
 
+      const fixFotoUrl = (url) => {
+        if (!url) return "";
+        url = String(url).trim();
+        const m = url.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=)|docs\.google\.com\/file\/d\/)([a-zA-Z0-9_-]+)/);
+        return (m && m[1]) ? "https://lh3.googleusercontent.com/d/" + m[1] : url;
+      };
+
+      const renderAvatar = (c, i, cls) => {
+        cls = cls || "avatar sm";
+        const foto = fixFotoUrl(c.foto_url);
+        if (foto) {
+          return `<img class="${cls}" src="${App.esc(foto)}" alt="${App.esc(c.nama)}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"><div class="${cls}" style="background:${App.color(i)};display:none">${App.esc(App.initials(c.nama))}</div>`;
+        }
+        return `<div class="${cls}" style="background:${App.color(i)}">${App.esc(App.initials(c.nama))}</div>`;
+      };
+
       function showLocked() {
         $("lockedCard").hidden = false;
         $("lcContent").hidden = true;
@@ -103,6 +119,12 @@
       function render(d) {
         cachedData = d;
         showUnlocked();
+
+        if (d.calon) {
+          d.calon.forEach((c) => {
+            if (c.foto_url) c.foto_url = fixFotoUrl(c.foto_url);
+          });
+        }
 
         $("total").textContent = d.total;
         $("hak").textContent = d.hakSuara;
@@ -126,7 +148,7 @@
           const lead = c.suara > 0 && c.suara === max;
           return `
             <div class="bar-row">
-              <div class="avatar-wrap">${App.avatar(c, i, "avatar sm")}${lead ? '<span class="crown">👑</span>' : ""}</div>
+              <div class="avatar-wrap">${renderAvatar(c, i, "avatar sm")}${lead ? '<span class="crown">👑</span>' : ""}</div>
               <div>
                 <div class="bar-top"><span>${App.esc(c.nomor)} ${App.esc(App.cleanName(c.nama))}</span><span class="val">${c.suara} suara (${App.fmtPct(p)})</span></div>
                 <div class="bar"><div style="width:${max ? (c.suara / max) * 100 : 0}%;background:${App.color(i)}"></div></div>

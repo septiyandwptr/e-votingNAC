@@ -89,16 +89,29 @@
         ["loadingCard", "closedCard", "doneCard", "voteCard"].forEach((c) => ($(c).hidden = c !== id));
       }
 
+      const fixFotoUrl = (url) => {
+        if (!url) return "";
+        url = String(url).trim();
+        const m = url.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=)|docs\.google\.com\/file\/d\/)([a-zA-Z0-9_-]+)/);
+        return (m && m[1]) ? "https://lh3.googleusercontent.com/d/" + m[1] : url;
+      };
+
       function renderCands() {
-        $("cands").innerHTML = calon.map((c, i) => `
+        $("cands").innerHTML = calon.map((c, i) => {
+          const foto = fixFotoUrl(c.foto_url);
+          const avatarHtml = foto
+            ? `<img class="avatar" src="${App.esc(foto)}" alt="${App.esc(c.nama)}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'"><div class="avatar" style="background:${App.color(i)};display:none">${App.esc(App.initials(c.nama))}</div>`
+            : `<div class="avatar" style="background:${App.color(i)}">${App.esc(App.initials(c.nama))}</div>`;
+          return `
           <label class="cand" data-no="${App.esc(c.nomor)}">
             <input type="radio" name="calon" value="${App.esc(c.nomor)}">
             <span class="no">${App.esc(c.nomor)}</span>
             <span class="radio"></span>
-            ${App.avatar(c, i)}
+            ${avatarHtml}
             <div class="name">${App.esc(App.cleanName(c.nama))}</div>
             ${c.tagline ? `<div class="tag">${App.esc(c.tagline)}</div>` : ""}
-          </label>`).join("");
+          </label>`;
+        }).join("");
         $("cands").querySelectorAll(".cand").forEach((el) => {
           el.addEventListener("click", () => {
             selected = el.dataset.no;
